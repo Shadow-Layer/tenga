@@ -141,6 +141,10 @@ class SaleService:
         db.add(sale)
         db.commit()
 
+        # For online sales (not offline), generate movements immediately
+        if not offline_device_id:
+            SaleService._generate_movements_for_sale(sale, cashier_id, db)
+
         return sale
 
     @staticmethod
@@ -171,9 +175,46 @@ class SaleService:
             return
 
         # Generate inventory movements for each item (one movement per product)
+        SaleService._generate_movements_for_sale(sale, recorded_by_id, db)
+
+        # Mark sale as committed
+        sale.status = "COMPLETED"
+        sale.updated_at = datetime.utcnow()
+        db.commit()
+
+    @staticmethod
+    def get_pending_sales(
+        organization_id: int,
+        db: Session,
+    ) -> List[Sale]:
+        """Fetch all pending sales awaiting commitment.
+
+        Args:
+            organization_id: Organization ID
+            db: Database session
+
+        Returns:
+            List of PENDING sales
+        """
+        return db.query(Sale).filter(
+            Sale.organization_id == organization_id,
+            Sale.status == "PENDING",
+        ).order_by(Sale.created_at).all()
+
+    @staticmethod
+    def _generate_movements_for_sale(
+        sale: "Sale",
+        recorded_by_id: int,
+        db: Session,
+    ) -> None:
+        """Generate inventory movements for a sale (helper for commit and online creation).
+        
+        Idempotent: only creates movements if they don't already exist.
+        """
+        from src.models.entities import InventoryMovement
+        
         for sale_item in sale.sale_items:
             # Check if movement already exists (idempotency)
-            from src.models.entities import InventoryMovement
             existing = db.query(InventoryMovement).filter(
                 InventoryMovement.reference_type == "SALE",
                 InventoryMovement.reference_id == sale.id,
@@ -203,30 +244,6 @@ class SaleService:
                 location_id=sale.till.location_id,
                 db=db,
             )
-
-        # Mark sale as committed
-        sale.status = "COMPLETED"
-        sale.updated_at = datetime.utcnow()
-        db.commit()
-
-    @staticmethod
-    def get_pending_sales(
-        organization_id: int,
-        db: Session,
-    ) -> List[Sale]:
-        """Fetch all pending sales awaiting commitment.
-
-        Args:
-            organization_id: Organization ID
-            db: Database session
-
-        Returns:
-            List of PENDING sales
-        """
-        return db.query(Sale).filter(
-            Sale.organization_id == organization_id,
-            Sale.status == "PENDING",
-        ).order_by(Sale.created_at).all()
 
     @staticmethod
     def get_sale(
