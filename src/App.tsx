@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import './index.css'
+import AdminQuickStart from './components/AdminQuickStart'
 
 interface Step {
   number: number
@@ -328,111 +329,124 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Start Guide */}
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Quick Start: Till & Inventory Testing</h2>
-              <p className="text-gray-600">
-                Follow these steps to set up your first location, add products, and process a sale.
-                Each step includes the API endpoint and example request body.
-              </p>
-            </div>
-
-            {/* Steps */}
-            <div className="space-y-3">
-              {QUICK_START_STEPS.map((step) => (
-                <StepCard
-                  key={step.number}
-                  step={step}
-                  isExpanded={expandedStep === step.number}
-                  onToggle={() => setExpandedStep(expandedStep === step.number ? null : step.number)}
-                />
-              ))}
-            </div>
-
-            {/* Testing Checklist */}
-            <div className="mt-8 pt-8 border-t">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Testing Checklist</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-blue-50 p-4 rounded">
-                  <p className="font-semibold text-blue-900 mb-3">✓ Setup Phase</p>
-                  <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                    <li>Create Location</li>
-                    <li>Create 2 Products</li>
-                    <li>Add stock</li>
-                    <li>Create Till</li>
-                  </ul>
-                </div>
-
-                <div className="bg-green-50 p-4 rounded">
-                  <p className="font-semibold text-green-900 mb-3">✓ Till Operations</p>
-                  <ul className="text-sm text-green-800 space-y-1 list-disc list-inside">
-                    <li>Open Till Session</li>
-                    <li>Verify session open</li>
-                    <li>Process Sales</li>
-                    <li>Track inventory</li>
-                  </ul>
-                </div>
-
-                <div className="bg-purple-50 p-4 rounded">
-                  <p className="font-semibold text-purple-900 mb-3">✓ Verification</p>
-                  <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
-                    <li>Stock deductions</li>
-                    <li>Till reconciliation</li>
-                    <li>Sale history</li>
-                    <li>Close session</li>
-                  </ul>
-                </div>
+          {/* Quick Start Guide or Admin Tools */}
+          {user.role === 'admin' ? (
+            <div>
+              <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Quick Actions</h2>
+                <p className="text-gray-600">Run the 8-step quick setup directly from the dashboard (one-click forms).</p>
+              </div>
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                {/* Admin component handles the quick actions */}
+                <AdminQuickStart user={user} />
               </div>
             </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Quick Start: Till & Inventory Testing</h2>
+                <p className="text-gray-600">
+                  Follow these steps to set up your first location, add products, and process a sale.
+                  Each step includes the API endpoint and example request body.
+                </p>
+              </div>
 
-            {/* Documentation Links */}
-            <div className="mt-8 pt-8 border-t">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <a
-                  href="/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 border rounded hover:bg-gray-50"
-                >
-                  <p className="font-semibold text-gray-900">Swagger UI</p>
-                  <p className="text-sm text-gray-600">Interactive API documentation with try-it-out</p>
-                </a>
+              {/* Steps */}
+              <div className="space-y-3">
+                {QUICK_START_STEPS.map((step) => (
+                  <StepCard
+                    key={step.number}
+                    step={step}
+                    isExpanded={expandedStep === step.number}
+                    onToggle={() => setExpandedStep(expandedStep === step.number ? null : step.number)}
+                  />
+                ))}
+              </div>
 
-                <a
-                  href="/redoc"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 border rounded hover:bg-gray-50"
-                >
-                  <p className="font-semibold text-gray-900">ReDoc</p>
-                  <p className="text-sm text-gray-600">Beautiful, easy-to-read API documentation</p>
-                </a>
+              {/* Testing Checklist */}
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Testing Checklist</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-blue-50 p-4 rounded">
+                    <p className="font-semibold text-blue-900 mb-3">✓ Setup Phase</p>
+                    <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                      <li>Create Location</li>
+                      <li>Create 2 Products</li>
+                      <li>Add stock</li>
+                      <li>Create Till</li>
+                    </ul>
+                  </div>
 
-                <a
-                  href="/openapi.json"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 border rounded hover:bg-gray-50"
-                >
-                  <p className="font-semibold text-gray-900">OpenAPI Spec</p>
-                  <p className="text-sm text-gray-600">Full OpenAPI 3.0 specification JSON</p>
-                </a>
+                  <div className="bg-green-50 p-4 rounded">
+                    <p className="font-semibold text-green-900 mb-3">✓ Till Operations</p>
+                    <ul className="text-sm text-green-800 space-y-1 list-disc list-inside">
+                      <li>Open Till Session</li>
+                      <li>Verify session open</li>
+                      <li>Process Sales</li>
+                      <li>Track inventory</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded">
+                    <p className="font-semibold text-purple-900 mb-3">✓ Verification</p>
+                    <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
+                      <li>Stock deductions</li>
+                      <li>Till reconciliation</li>
+                      <li>Sale history</li>
+                      <li>Close session</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Documentation Links */}
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <a
+                    href="/docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 border rounded hover:bg-gray-50"
+                  >
+                    <p className="font-semibold text-gray-900">Swagger UI</p>
+                    <p className="text-sm text-gray-600">Interactive API documentation with try-it-out</p>
+                  </a>
+
+                  <a
+                    href="/redoc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 border rounded hover:bg-gray-50"
+                  >
+                    <p className="font-semibold text-gray-900">ReDoc</p>
+                    <p className="text-sm text-gray-600">Beautiful, easy-to-read API documentation</p>
+                  </a>
+
+                  <a
+                    href="/openapi.json"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 border rounded hover:bg-gray-50"
+                  >
+                    <p className="font-semibold text-gray-900">OpenAPI Spec</p>
+                    <p className="text-sm text-gray-600">Full OpenAPI 3.0 specification JSON</p>
+                  </a>
+                </div>
+              </div>
+
+              {/* Info Box */}
+              <div className="mt-8 pt-8 border-t bg-blue-50 p-4 rounded">
+                <p className="text-sm text-blue-900 mb-2">
+                  <strong>💡 Tip:</strong> Click on any step to expand it and see the API endpoint and example request body.
+                  Copy the example JSON and paste it into the Swagger UI to test the endpoint.
+                </p>
+                <p className="text-sm text-blue-900">
+                  <strong>Organization ID:</strong> 1 | <strong>Current User ID:</strong> {user.id}
+                </p>
               </div>
             </div>
-
-            {/* Info Box */}
-            <div className="mt-8 pt-8 border-t bg-blue-50 p-4 rounded">
-              <p className="text-sm text-blue-900 mb-2">
-                <strong>💡 Tip:</strong> Click on any step to expand it and see the API endpoint and example request body.
-                Copy the example JSON and paste it into the Swagger UI to test the endpoint.
-              </p>
-              <p className="text-sm text-blue-900">
-                <strong>Organization ID:</strong> 1 | <strong>Current User ID:</strong> {user.id}
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     )
