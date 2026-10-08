@@ -12,9 +12,11 @@ RUN npm install
 # Copy source code
 COPY tsconfig.json vite.config.ts tailwind.config.js postcss.config.js index.html ./
 COPY src/ src/
+# Ensure vite.svg is present in build context and copied into dist
+COPY vite.svg ./
 
-# Build frontend
-RUN npm run build
+# Build frontend and copy vite.svg into dist (some build setups may not include root assets)
+RUN npm run build && cp vite.svg dist/vite.svg || true
 
 # Stage 2: Nginx runtime
 FROM nginx:alpine
