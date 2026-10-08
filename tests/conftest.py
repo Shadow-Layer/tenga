@@ -1,8 +1,14 @@
 """Shared test fixtures."""
 import pytest
+import os
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
+
+# Set test database path before importing database modules
+if "SQLITE_PATH" not in os.environ:
+    os.environ["SQLITE_PATH"] = "./tenga-test.db"
+
 from src.database import SessionLocal, init_db, drop_db, get_db
 from src.models.entities import (
     Organization,
