@@ -1,27 +1,120 @@
 version: '3.8'
 
 services:
-  api:
-    build: .
-    container_name: tenga-inventory-api
-    ports:
-      - "8000:8000"
+  # PostgreSQL database service
+  postgres:
+    image: postgres:16-alpine
+    container_name: tenga-postgres
     environment:
-      - ENVIRONMENT=dev
-      - DEBUG=true
-      - DATABASE_URL=sqlite:////data/tenga.db
-      - CORS_ORIGINS=*
-      - SQL_ECHO=false
+      POSTGRES_DB: ${POSTGRES_DB:-tenga}
+      POSTGRES_USER: ${POSTGRES_USER:-tenga_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - .:/app
-      - tenga_db:/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tenga_user}"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
+    networks:
+      - tenga-network
+    security_opt:
+      - no-new-privileges:true
+
+  # FastAPI application service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tenga-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-prod}
+      DEBUG: "${DEBUG:-false}"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tenga_user}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/${POSTGRES_DB:-tenga}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-20}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      CORS_ALLOW_CREDENTIALS: "${CORS_ALLOW_CREDENTIALS:-false}"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      SQL_ECHO: "${SQL_ECHO:-false}"
+      API_TITLE: ${API_TITLE:-Tenga Inventory POS}
+      API_VERSION: ${API_VERSION:-T013}
+    volumes:
+      - app_data:/data
+      - app_logs:/app/logs
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - tenga-network
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Frontend service (Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: tenga-frontend
+    depends_on:
+      - api
+    volumes:
+      - frontend_logs:/var/log/nginx
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - tenga-network
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  tenga-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
-  tenga_db:
+  postgres_data:
     driver: local
+  app_data:
+    driver: local
+  app_logs:
+    driver: local
+  frontend_logs:
+    driver: local
+

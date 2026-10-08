@@ -13,11 +13,33 @@ Base = declarative_base()
 # Examples:
 #   sqlite:///:memory:  (in-memory for tests)
 #   sqlite:///path/to/tenga.db  (file-based)
-#   postgresql://user:password@localhost/tenga  (PostgreSQL)
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "sqlite:////home/tea/Documents/apps/tenga-inventory/tenga.db"
-)
+#   postgresql://user:password@host:5432/tenga  (PostgreSQL)
+def get_database_url() -> str:
+    """Build database URL from environment variables."""
+    env = os.getenv("ENVIRONMENT", "dev")
+    
+    # Check for explicit DATABASE_URL first
+    if "DATABASE_URL" in os.environ:
+        return os.environ["DATABASE_URL"]
+    
+    # For production, require PostgreSQL configuration
+    if env == "prod":
+        host = os.getenv("POSTGRES_HOST", "localhost")
+        port = os.getenv("POSTGRES_PORT", "5432")
+        db = os.getenv("POSTGRES_DB", "tenga")
+        user = os.getenv("POSTGRES_USER", "tenga_user")
+        password = os.getenv("POSTGRES_PASSWORD")
+        
+        if not password:
+            raise ValueError("POSTGRES_PASSWORD must be set in production")
+        
+        return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+    
+    # Default to SQLite for dev/test
+    db_path = os.getenv("SQLITE_PATH", "/data/tenga.db")
+    return f"sqlite:///{db_path}"
+
+DB_URL = get_database_url()
 
 # Detect database type
 IS_SQLITE = "sqlite" in DB_URL
