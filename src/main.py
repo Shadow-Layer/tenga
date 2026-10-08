@@ -13,6 +13,7 @@ from src.database.config import get_db, init_db
 # Import models to register them with Base
 from src.models import entities  # noqa: F401
 from src.routers import products, locations, organizations, users, sales, tills, inventory, sync, subscriptions, auth
+from src.swagger_ui_custom import get_swagger_ui_with_guide
 
 # Configure logging
 logging.basicConfig(level=logging.INFO if not DEBUG else logging.DEBUG)
@@ -131,3 +132,10 @@ app.include_router(sales.router, prefix="/api/v1", tags=["Sales"])
 app.include_router(tills.router, prefix="/api/v1/tills", tags=["Tills"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
+
+
+# Custom Swagger UI with integrated quick start guide
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui():
+    """Custom Swagger UI with integrated quick start guide."""
+    return get_swagger_ui_with_guide(app)
