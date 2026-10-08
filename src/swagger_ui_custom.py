@@ -1,19 +1,16 @@
-"""Custom Swagger UI with integrated quick start guide."""
+"""Simplified custom Swagger UI with quick start guide."""
 
-from fastapi.openapi.utils import get_openapi
-from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-def get_swagger_ui_with_guide(app: FastAPI) -> HTMLResponse:
-    """Return custom Swagger UI HTML with integrated quick start guide."""
+def get_swagger_ui_with_guide(app) -> HTMLResponse:
+    """Return simplified Swagger UI with quick start guide."""
     return HTMLResponse("""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenga Inventory POS - API Documentation</title>
+    <title>Tenga Inventory POS - API</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.css">
     <style>
         * {
@@ -23,442 +20,380 @@ def get_swagger_ui_with_guide(app: FastAPI) -> HTMLResponse:
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
         }
         
-        .container {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        .sidebar {
-            background: white;
-            border-right: 1px solid #e0e0e0;
-            overflow-y: auto;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .sidebar-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .sidebar-header::before {
-            content: "📚";
-            font-size: 20px;
-        }
-        
-        .guide-section {
-            margin-bottom: 16px;
-        }
-        
-        .step-item {
-            padding: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-left: 3px solid #ddd;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .step-item:hover {
-            background: #f0f0f0;
-            border-left-color: #0066cc;
-        }
-        
-        .step-item.active {
-            background: #e3f2fd;
-            border-left-color: #0066cc;
-            font-weight: 600;
-        }
-        
-        .step-number {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            text-align: center;
-            background: #0066cc;
-            color: white;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-rows: auto 1fr;
-            overflow: hidden;
-        }
-        
-        .tabs-header {
-            background: white;
-            border-bottom: 2px solid #e0e0e0;
-            display: flex;
-            padding: 0;
-            overflow-x: auto;
-        }
-        
-        .tab-button {
-            padding: 16px 24px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        
-        .tab-button:hover {
-            color: #333;
-            background: #f9f9f9;
-        }
-        
-        .tab-button.active {
-            color: #0066cc;
-            border-bottom-color: #0066cc;
-        }
-        
-        .tabs-content {
-            overflow: auto;
-            background: white;
-        }
-        
-        .tab-pane {
-            display: none;
-            padding: 20px;
-            height: 100%;
-        }
-        
-        .tab-pane.active {
-            display: block;
-        }
-        
-        #swagger-ui {
-            max-width: 100%;
-        }
-        
-        .guide-content {
-            max-width: 900px;
+        .page {
+            max-width: 1200px;
             margin: 0 auto;
         }
         
-        .step-detail {
-            background: #f9f9f9;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
         }
         
-        .step-detail h3 {
-            color: #0066cc;
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .intro {
+            background: white;
+            padding: 30px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .intro h2 {
+            color: #333;
             margin-bottom: 12px;
             font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
-        .step-detail p {
-            color: #555;
+        .intro p {
+            color: #666;
             line-height: 1.6;
             margin-bottom: 12px;
         }
         
-        .api-info {
+        .creds {
             background: #f0f4f8;
             border-left: 4px solid #0066cc;
             padding: 12px;
             border-radius: 4px;
-            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            font-family: monospace;
+            color: #333;
+            margin-top: 12px;
+        }
+        
+        .steps-container {
+            padding: 20px;
+        }
+        
+        .step {
+            background: white;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        
+        .step:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .step-header {
+            background: #f5f5f5;
+            padding: 16px 20px;
+            border-left: 4px solid #0066cc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .step-header:hover {
+            background: #ebebeb;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            background: #0066cc;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        .step-content {
+            display: none;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .step.open .step-content {
+            display: block;
+        }
+        
+        .step-body {
+            color: #555;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .step-body p {
+            margin-bottom: 12px;
+        }
+        
+        .endpoint {
+            background: #f0f4f8;
+            border-left: 4px solid #0066cc;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: monospace;
             font-size: 13px;
             color: #333;
             margin: 12px 0;
-            overflow-x: auto;
         }
         
-        .code-block {
+        .json-box {
             background: #282c34;
             color: #abb2bf;
             padding: 16px;
             border-radius: 6px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            margin: 12px 0;
-            overflow-x: auto;
-            line-height: 1.5;
-        }
-        
-        .code-block .keyword { color: #c678dd; }
-        .code-block .string { color: #98c379; }
-        .code-block .number { color: #d19a66; }
-        
-        .example-request {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 12px;
-            margin: 12px 0;
-            font-family: 'Monaco', 'Courier New', monospace;
+            font-family: monospace;
             font-size: 12px;
             overflow-x: auto;
+            line-height: 1.5;
+            margin: 12px 0;
         }
         
-        .try-it-button {
+        .try-button {
             display: inline-block;
             background: #0066cc;
             color: white;
             padding: 10px 16px;
+            border: none;
             border-radius: 6px;
-            text-decoration: none;
+            cursor: pointer;
             font-weight: 500;
+            font-size: 14px;
             margin-top: 12px;
             transition: background 0.2s;
         }
         
-        .try-it-button:hover {
+        .try-button:hover {
             background: #0052a3;
         }
         
-        .checklist {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 16px;
-            margin: 20px 0;
+        .swagger-container {
+            margin: 40px 20px 20px 20px;
         }
         
-        .checklist h4 {
-            margin-bottom: 12px;
-            color: #333;
-        }
-        
-        .checklist-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            color: #555;
-            font-size: 14px;
-        }
-        
-        .checklist-item::before {
-            content: "☐";
-            margin-right: 8px;
-            font-size: 16px;
-            color: #0066cc;
-            font-weight: bold;
-        }
-        
-        .phase-box {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 16px;
-            margin: 12px 0;
-        }
-        
-        .phase-box h5 {
-            color: #0066cc;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .phase-box ul {
-            margin-left: 20px;
-            font-size: 13px;
-            color: #555;
-        }
-        
-        .phase-box li {
-            margin: 4px 0;
-        }
-        
-        .info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #0066cc;
+        .tip {
+            background: #fffbee;
+            border-left: 4px solid #ffa500;
             padding: 12px;
             border-radius: 4px;
+            font-size: 13px;
+            color: #333;
             margin: 12px 0;
+        }
+        
+        .tip strong {
+            color: #ff8c00;
+        }
+        
+        .toggle-all {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .toggle-button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
             font-size: 14px;
-            color: #1565c0;
         }
         
-        .info-box strong {
-            color: #0d47a1;
+        .toggle-button:hover {
+            background: #0052a3;
         }
         
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                display: none;
-            }
-        }
-        
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 280px 1fr;
-            }
+        #swagger-ui {
+            margin: 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar Navigation -->
-        <div class="sidebar">
-            <div class="sidebar-header">Quick Start</div>
-            <div class="guide-section">
-                <div class="step-item active" onclick="showGuide(0)" data-step="0">
-                    <span class="step-number">1</span>
-                    <span>Create Location</span>
-                </div>
-                <div class="step-item" onclick="showGuide(1)" data-step="1">
-                    <span class="step-number">2</span>
-                    <span>Create Product</span>
-                </div>
-                <div class="step-item" onclick="showGuide(2)" data-step="2">
-                    <span class="step-number">3</span>
-                    <span>Add Stock</span>
-                </div>
-                <div class="step-item" onclick="showGuide(3)" data-step="3">
-                    <span class="step-number">4</span>
-                    <span>Create Till</span>
-                </div>
-                <div class="step-item" onclick="showGuide(4)" data-step="4">
-                    <span class="step-number">5</span>
-                    <span>Open Session</span>
-                </div>
-                <div class="step-item" onclick="showGuide(5)" data-step="5">
-                    <span class="step-number">6</span>
-                    <span>Process Sale</span>
-                </div>
-                <div class="step-item" onclick="showGuide(6)" data-step="6">
-                    <span class="step-number">7</span>
-                    <span>Verify Stock</span>
-                </div>
-                <div class="step-item" onclick="showGuide(7)" data-step="7">
-                    <span class="step-number">8</span>
-                    <span>Close Till</span>
-                </div>
-            </div>
-            
-            <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
-            
-            <div style="font-size: 12px; color: #666; line-height: 1.6;">
-                <p style="font-weight: 600; margin-bottom: 8px;">Demo Credentials</p>
-                <p><strong>Admin:</strong></p>
-                <p style="font-size: 11px; margin-bottom: 8px;">admin@teststore.com<br>Admin123!</p>
-                <p><strong>Cashier:</strong></p>
-                <p style="font-size: 11px;">cashier@teststore.com<br>Cashier123!</p>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏪 Tenga Inventory POS - API Setup</h1>
+            <p>Complete 8-step workflow to get up and running</p>
+        </div>
+        
+        <!-- Introduction -->
+        <div class="intro">
+            <h2>Getting Started</h2>
+            <p>Follow these 8 simple steps to test the complete POS workflow. Each step includes an API endpoint and example request.</p>
+            <div class="creds">
+Email: admin@teststore.com<br>
+Password: Admin123!
             </div>
         </div>
         
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="tabs-header">
-                <button class="tab-button active" onclick="switchTab('guide')">📖 Quick Start</button>
-                <button class="tab-button" onclick="switchTab('api')">🔌 API Docs</button>
+        <!-- Steps -->
+        <div class="steps-container">
+            <div class="toggle-all">
+                <button class="toggle-button" onclick="toggleAll()">Expand All Steps</button>
             </div>
             
-            <div class="tabs-content">
-                <!-- Quick Start Tab -->
-                <div id="guide" class="tab-pane active">
-                    <div class="guide-content">
-                        <h2 style="margin-bottom: 20px; color: #333;">Tenga Inventory POS - Quick Start Guide</h2>
-                        
-                        <div id="step-0" class="step-detail" style="display: block;">
-                            <h3>📍 Step 1: Create a Location</h3>
-                            <p>A location represents a physical store or warehouse where you manage inventory and tills.</p>
-                            <div class="api-info">POST /api/v1/locations</div>
-                            <div class="example-request">{
+            <!-- Step 1 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        <span>Create a Location</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>A location is a physical store where you manage inventory and tills.</p>
+                        <div class="endpoint">POST /api/v1/locations</div>
+                        <div class="json-box">{
   "name": "Downtown Store",
   "code": "LOC001",
-  "description": "Main retail location",
+  "description": "Main location",
   "organization_id": 1
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-locations')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> You'll use location_id in subsequent steps for stock and till management.</div>
-                        </div>
-                        
-                        <div id="step-1" class="step-detail" style="display: none;">
-                            <h3>📦 Step 2: Create a Product</h3>
-                            <p>Add items that you want to sell - coffee, tea, snacks, etc.</p>
-                            <div class="api-info">POST /api/v1/products</div>
-                            <div class="example-request">{
-  "name": "Premium Coffee",
+                        <div class="tip"><strong>Tip:</strong> Save the location_id returned - you'll need it for stock and till steps.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        <span>Create a Product</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Add items you want to sell.</p>
+                        <div class="endpoint">POST /api/v1/products</div>
+                        <div class="json-box">{
+  "name": "Coffee",
   "sku": "COFFEE-001",
   "category": "Beverages",
   "price": 450,
   "cost": 200,
   "organization_id": 1
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-products')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> Price is in cents (450 = \$4.50). Record the product_id for later steps.</div>
-                        </div>
-                        
-                        <div id="step-2" class="step-detail" style="display: none;">
-                            <h3>📊 Step 3: Add Stock to Location</h3>
-                            <p>Set initial inventory levels for your products at this location.</p>
-                            <div class="api-info">POST /api/v1/stock/stock/adjust?organization_id=1</div>
-                            <div class="example-request">{
+                        <div class="tip"><strong>Tip:</strong> Price is in cents (450 = $4.50). Save the product_id.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        <span>Add Stock</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Set inventory levels at your location.</p>
+                        <div class="endpoint">POST /api/v1/stock/stock/adjust?organization_id=1</div>
+                        <div class="json-box">{
   "product_id": 1,
   "location_id": 1,
   "quantity": 100,
   "reason": "PHYSICAL_COUNT_DISCREPANCY",
   "recorded_by_id": 2
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-stock')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> Valid reasons: PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE, ADJUSTMENT. Include organization_id as query parameter.</div>
-                        </div>
-                        
-                        <div id="step-3" class="step-detail" style="display: none;">
-                            <h3>💳 Step 4: Create a Till</h3>
-                            <p>Set up a cash register (physical device or terminal) at your location.</p>
-                            <div class="api-info">POST /api/v1/tills</div>
-                            <div class="example-request">{
+                        <div class="tip"><strong>Tip:</strong> Include organization_id in the URL query parameter.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">4</span>
+                        <span>Create a Till</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Set up a cash register at your location.</p>
+                        <div class="endpoint">POST /api/v1/tills</div>
+                        <div class="json-box">{
   "organization_id": 1,
   "location_id": 1,
   "code": "TILL001",
   "name": "Front Register"
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-tills')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> Include organization_id in the request body. Record the till_id for session management.</div>
-                        </div>
-                        
-                        <div id="step-4" class="step-detail" style="display: none;">
-                            <h3>🔓 Step 5: Open Till Session</h3>
-                            <p>Start a till session with an opening cash balance (in cents).</p>
-                            <div class="api-info">POST /api/v1/tills/{till_id}/open</div>
-                            <div class="example-request">{
+                        <div class="tip"><strong>Tip:</strong> Save the till_id for session management.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 5 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">5</span>
+                        <span>Open Till Session</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Start a till session with opening cash balance.</p>
+                        <div class="endpoint">POST /api/v1/tills/{till_id}/open</div>
+                        <div class="json-box">{
   "user_id": 2,
   "opening_balance_cents": 50000
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-tills-open')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> Opening balance is in cents (50000 = \$500.00). Replace {till_id} with your till ID from step 4.</div>
-                        </div>
-                        
-                        <div id="step-5" class="step-detail" style="display: none;">
-                            <h3>💰 Step 6: Process a Sale</h3>
-                            <p>Record a transaction with products, quantities, and payment method.</p>
-                            <div class="api-info">POST /api/v1/sales</div>
-                            <div class="example-request">{
+                        <div class="tip"><strong>Tip:</strong> Opening balance in cents (50000 = $500.00). Replace {till_id} with your ID.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 6 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">6</span>
+                        <span>Process a Sale</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Record a transaction. Stock automatically deducts.</p>
+                        <div class="endpoint">POST /api/v1/sales</div>
+                        <div class="json-box">{
   "till_id": 1,
   "cashier_id": 2,
   "payment_method": "cash",
@@ -469,77 +404,60 @@ def get_swagger_ui_with_guide(app: FastAPI) -> HTMLResponse:
       "unit_price": 450
     }
   ],
-  "is_offline": false,
-  "notes": "Customer purchase"
+  "is_offline": false
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-sales')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> Stock is automatically deducted when the sale is processed. Total will be calculated automatically.</div>
-                        </div>
-                        
-                        <div id="step-6" class="step-detail" style="display: none;">
-                            <h3>✓ Step 7: Verify Stock Deduction</h3>
-                            <p>Confirm that inventory was automatically updated after the sale.</p>
-                            <div class="api-info">GET /api/v1/stock/locations/{location_id}/stock</div>
-                            <p>Replace {location_id} with your location ID from step 1.</p>
-                            <a href="javascript:scrollToEndpoint('get-stock')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> If you sold 2 units and started with 100, you should see 98 units remaining.</div>
-                        </div>
-                        
-                        <div id="step-7" class="step-detail" style="display: none;">
-                            <h3>🔒 Step 8: Close Till Session</h3>
-                            <p>Finalize the till session with closing balance and reconcile cash.</p>
-                            <div class="api-info">POST /api/v1/tills/{till_id}/close</div>
-                            <div class="example-request">{
+                        <div class="tip"><strong>Tip:</strong> Stock deducts automatically. Save the sale_id.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 7 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">7</span>
+                        <span>Verify Stock</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Check that inventory was deducted correctly.</p>
+                        <div class="endpoint">GET /api/v1/stock/locations/{location_id}/stock</div>
+                        <p style="margin-top: 12px;">Replace {location_id} with your ID. You should see reduced quantity (100 - 2 = 98).</p>
+                        <div class="tip"><strong>Tip:</strong> This verifies the sale correctly updated inventory.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 8 -->
+            <div class="step">
+                <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="step-title">
+                        <span class="step-number">8</span>
+                        <span>Close Till Session</span>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <div class="step-body">
+                        <p>Finalize the till session with closing cash amount.</p>
+                        <div class="endpoint">POST /api/v1/tills/{till_id}/close</div>
+                        <div class="json-box">{
   "user_id": 2,
   "closing_amount_cents": 51250,
   "notes": "End of shift"
 }</div>
-                            <a href="javascript:scrollToEndpoint('post-tills-close')" class="try-it-button">Try it in Swagger →</a>
-                            <div class="info-box">💡 <strong>Tip:</strong> Closing amount should include opening balance + sales. Replace {till_id} with your till ID.</div>
-                        </div>
-                        
-                        <div style="margin-top: 40px; padding: 20px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #0066cc;">
-                            <h4 style="color: #0d47a1; margin-bottom: 12px;">✅ Testing Checklist</h4>
-                            <div class="phase-box">
-                                <h5>Setup Phase</h5>
-                                <ul>
-                                    <li>Create 1 location</li>
-                                    <li>Create 2 products</li>
-                                    <li>Add stock to location</li>
-                                    <li>Create 1 till</li>
-                                </ul>
-                            </div>
-                            <div class="phase-box">
-                                <h5>Operations Phase</h5>
-                                <ul>
-                                    <li>Open till session</li>
-                                    <li>Process multiple sales</li>
-                                    <li>Track inventory</li>
-                                </ul>
-                            </div>
-                            <div class="phase-box">
-                                <h5>Verification Phase</h5>
-                                <ul>
-                                    <li>Verify stock deductions</li>
-                                    <li>Check till reconciliation</li>
-                                    <li>View sale history</li>
-                                    <li>Close till session</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 30px; text-align: center; color: #999; font-size: 12px;">
-                            <p>💡 Click the <strong>"Try it in Swagger"</strong> buttons above to test each endpoint interactively!</p>
-                            <p style="margin-top: 8px;">All endpoints require Bearer token authentication (login first).</p>
-                        </div>
+                        <div class="tip"><strong>Tip:</strong> Closing amount should be opening ($500) + sales ($9) = $509. Replace {till_id} with your ID.</div>
                     </div>
                 </div>
-                
-                <!-- API Docs Tab -->
-                <div id="api" class="tab-pane">
-                    <div id="swagger-ui"></div>
-                </div>
             </div>
+        </div>
+        
+        <!-- Swagger UI -->
+        <div class="swagger-container">
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">📚 Full API Documentation</h2>
+            <div id="swagger-ui"></div>
         </div>
     </div>
     
@@ -547,80 +465,29 @@ def get_swagger_ui_with_guide(app: FastAPI) -> HTMLResponse:
     <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui-standalone-preset.js"></script>
     
     <script>
-        let swaggerUI;
-        
-        function switchTab(tab) {
-            // Hide all tab panes
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.classList.remove('active');
-            });
+        function toggleAll() {
+            const steps = document.querySelectorAll('.step');
+            const allOpen = Array.from(steps).every(step => step.classList.contains('open'));
             
-            // Deactivate all tab buttons
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
-            
-            // Initialize Swagger UI on first access
-            if (tab === 'api' && !swaggerUI) {
-                initSwaggerUI();
-            }
-        }
-        
-        function showGuide(stepIndex) {
-            // Hide all steps
-            document.querySelectorAll('[id^="step-"]').forEach(step => {
-                step.style.display = 'none';
-            });
-            
-            // Deactivate all step items
-            document.querySelectorAll('.step-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Show selected step
-            document.getElementById('step-' + stepIndex).style.display = 'block';
-            document.querySelector('[data-step="' + stepIndex + '"]').classList.add('active');
-            
-            // Scroll to top
-            document.querySelector('.tabs-content').scrollTop = 0;
-        }
-        
-        function scrollToEndpoint(endpoint) {
-            // Switch to API tab
-            switchTab('api');
-            
-            // Give Swagger UI time to render
-            setTimeout(() => {
-                const element = document.querySelector('[data-name="' + endpoint + '"]');
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            steps.forEach(step => {
+                if (allOpen) {
+                    step.classList.remove('open');
+                } else {
+                    step.classList.add('open');
                 }
-            }, 100);
+            });
         }
         
-        function initSwaggerUI() {
-            swaggerUI = SwaggerUIBundle({
+        window.addEventListener('load', function() {
+            SwaggerUIBundle({
                 url: "/openapi.json",
                 dom_id: '#swagger-ui',
                 presets: [
                     SwaggerUIBundle.presets.apis,
                     SwaggerUIStandalonePreset
                 ],
-                layout: "StandaloneLayout",
-                deepLinking: true,
-                onFailure: function(data) {
-                    console.error('Failed to load OpenAPI spec:', data);
-                }
+                layout: "StandaloneLayout"
             });
-        }
-        
-        // Initialize on page load
-        window.addEventListener('load', function() {
-            console.log('Tenga Inventory POS API Documentation loaded');
         });
     </script>
 </body>

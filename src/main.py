@@ -33,12 +33,15 @@ async def lifespan(app: FastAPI):
     logger.info(f"Shutting down {API_TITLE}")
 
 
-# Create FastAPI application
+# Create FastAPI application (disable default docs - we use custom)
 app = FastAPI(
     title=API_TITLE,
     description=API_DESCRIPTION,
     version=API_VERSION,
     lifespan=lifespan,
+    docs_url=None,  # Disable default /docs
+    redoc_url="/redoc",  # Keep ReDoc
+    openapi_url="/openapi.json",  # Keep OpenAPI spec
 )
 
 # Add CORS middleware
