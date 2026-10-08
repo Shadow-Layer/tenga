@@ -10,6 +10,8 @@ from contextlib import asynccontextmanager
 
 from src.config import API_TITLE, API_DESCRIPTION, API_VERSION, CORS_ORIGINS, CORS_ALLOW_CREDENTIALS, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS, DEBUG
 from src.database.config import get_db, init_db
+# Import models to register them with Base
+from src.models import entities  # noqa: F401
 from src.routers import products, locations, organizations, users, sales, tills, inventory, sync, subscriptions, auth
 
 # Configure logging
