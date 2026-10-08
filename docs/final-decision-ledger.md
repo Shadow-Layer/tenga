@@ -114,6 +114,95 @@ These should be considered architectural anchors; change only with strong eviden
 
 ---
 
+---
+
+## IMPLEMENTATION PHASE DECISIONS (October 2026)
+
+**Note:** The decisions below were made during implementation (T001-T006) and use IDs U006-U008. These are **completely different from the original planning unknowns** that also use U006-U008. See `implementation-decisions-u006-u007-u008.md` for full details.
+
+### U006 (Implementation) — Permit & Reconcile Afterward
+
+**Topic:** Offline sales and stock reconciliation
+
+- **Decision:** Sales do not validate stock availability at point of sale. Tills can oversell (record sales exceeding available stock). Discrepancies are detected during sync via physical inventory reconciliation.
+- **Status:** ✅ Implemented and enforced
+- **Confidence:** High
+- **Reasoning:** Enables offline-first operation without complex cache coherency. Matches physical retail practices where physical count is authoritative.
+- **Implementation:** 
+  - `SaleService.create_sale()` — No stock validation
+  - `InventoryService.detect_discrepancy()` — Detects shortage/surplus post-sync
+- **Reversibility:** Expensive (core to inventory/sales model)
+- **Tested:** `test_multi_till_offline_conflict_scenario`, `test_can_oversell_in_offline_mode`
+- **Code Location:** `src/services/sale_service.py`, `src/services/inventory_service.py`
+
+### U007 (Implementation) — Tiered Grace Periods
+
+**Topic:** Subscription operational windows during expiry
+
+- **Decision:** Subscriptions transition ACTIVE → GRACE → LIMITED. Grace period duration depends on subscription term:
+  - Monthly: 7 days
+  - Annual: 30 days
+- **Status:** ✅ Implemented and enforced
+- **Confidence:** High
+- **Reasoning:** Reduces friction during renewal delays while protecting revenue. Tiered grace matches customer value (annual customers get more grace).
+- **Implementation:**
+  - `SubscriptionService.compute_current_state()` — Calculates state from expiry_date + grace_duration
+  - `TillService.assert_open_allowed()` — Blocks operations in LIMITED mode
+  - `src/models/subscription.py` — Grace duration configuration
+- **Reversibility:** Moderate (affects subscription model; grace durations are configurable)
+- **Tested:** `test_monthly_grace_is_7_days`, `test_annual_grace_is_30_days`, `test_can_open_when_grace`, `test_cannot_open_when_limited`
+- **Code Location:** `src/services/subscription_service.py`, `src/models/subscription.py`, `src/services/till_service.py`
+
+### U008 (Implementation) — Offline Optimism
+
+**Topic:** Offline device state validation
+
+- **Decision:** Devices cache subscription state from last sync. While offline, operate optimistically based on cached state. On reconnection, server provides current state; if changed, cache updates.
+- **Status:** ✅ Implemented and enforced
+- **Confidence:** High
+- **Reasoning:** Enables offline operation without server queries. Matches mobile/POS industry patterns (eventual consistency). Cache updates only on explicit sync.
+- **Implementation:**
+  - `CachedSubscriptionState` model — Device-side cache
+  - `SyncService.get_subscription_state_sync()` — Returns current state on sync
+  - `TillService` — Checks server state (if online) or cached state (if offline)
+- **Reversibility:** Expensive (core to sync protocol)
+- **Tested:** `test_allow_with_cached_active`, `test_allow_with_cached_grace`, `test_block_with_cached_limited`, `test_offline_device_cache_update_on_sync`
+- **Code Location:** `src/models/cached_subscription_state.py`, `src/services/sync_service.py`, `src/services/till_service.py`
+
+---
+
+## Decision Summary by Phase
+
+### Original Planning Decisions (D001-D012)
+- Focused on MVP scope, architecture, and business model
+- Resolved during requirements and design phase
+- All recorded in this ledger (D001-D010)
+- Derived decisions D011-D012 deferred pending pilot validation
+
+### Implementation Decisions (U006-U008, October 2026)
+- Made during service layer development (T001-T006)
+- Address POS-specific architecture (subscription lifecycle, offline operation, sales reconciliation)
+- All **implemented and tested** in production code
+- See `implementation-decisions-u006-u007-u008.md` for detailed analysis
+
+---
+
+## Naming Collision Alert ⚠️
+
+The implementation phase uses IDs **U006-U008** which collide with the original planning-phase unknowns. The topics are completely different:
+
+| ID | Original (Planning Phase) | Implementation Phase |
+|----|---------------------------|----------------------|
+| U006 | Regulatory/fiscal requirements | Permit & Reconcile Afterward |
+| U007 | Arrupe accountability model | Tiered Grace Periods |
+| U008 | Grocery count methodology | Offline Optimism |
+
+**Recommendation:** Future decision IDs should use non-colliding scheme (D013+, ARCH-001+, etc.)
+
+---
+
 ## Next Review
 - Revisit decisions D011, D012 after pilot scoping and initial onboarding.
+- Monitor implementation of U006-U008 in pilot deployments.
+- Consider formalizing cache TTL policy for U008 (Offline Optimism).
 

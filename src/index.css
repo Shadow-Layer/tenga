@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply box-border;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+button {
+  @apply font-medium;
+}
+
+input,
+textarea,
+select {
+  @apply border-gray-300;
+}
