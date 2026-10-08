@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: tenga-inventory-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=dev
+      - DEBUG=true
+      - DATABASE_URL=sqlite:////data/tenga.db
+      - CORS_ORIGINS=*
+      - SQL_ECHO=false
+    volumes:
+      - .:/app
+      - tenga_db:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  tenga_db:
+    driver: local

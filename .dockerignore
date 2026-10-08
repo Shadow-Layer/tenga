@@ -1,0 +1,55 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+.hypothesis/
+
+# Testing
+.pytest_cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Project specific
+.env
+.env.local
+tenga.db
+tenga.db-journal
+tenga_inventory.egg-info/
+dist/
+build/
+
+# Documentation
+*.md
+docs/
+
+# Other
+.editorconfig
+.pre-commit-config.yaml
+Makefile

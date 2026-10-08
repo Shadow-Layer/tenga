@@ -2,7 +2,8 @@
 import pytest
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from src.database import SessionLocal, init_db, drop_db
+from fastapi.testclient import TestClient
+from src.database import SessionLocal, init_db, drop_db, get_db
 from src.models.entities import (
     Organization,
     User,
@@ -12,6 +13,7 @@ from src.models.entities import (
     Subscription,
 )
 from src.models.subscription import SubscriptionState, SubscriptionTerm
+from src.main import app
 
 
 @pytest.fixture
@@ -112,3 +114,35 @@ def subscription_active(db: Session, org: Organization):
     db.add(sub)
     db.commit()
     return sub
+
+
+@pytest.fixture
+def client(db: Session):
+    """Create a test client with dependency override."""
+    def override_get_db():
+        yield db
+    
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def subscription(db: Session, org: Organization):
+    """Create a subscription (alias for subscription_active)."""
+    tomorrow = datetime.utcnow() + timedelta(days=30)
+    grace_end = tomorrow + timedelta(days=7)
+    sub = Subscription(
+        organization_id=org.id,
+        plan="BASIC",
+        term=SubscriptionTerm.MONTHLY.value,
+        state=SubscriptionState.ACTIVE.value,
+        start_date=datetime.utcnow(),
+        expiry_date=tomorrow,
+        grace_end_date=grace_end,
+    )
+    db.add(sub)
+    db.commit()
+    return sub
+

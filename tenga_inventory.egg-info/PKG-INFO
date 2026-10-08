@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: tenga-inventory
+Version: 0.1.0
+Summary: Tenga Inventory Point-of-Sale System
+Requires-Python: >=3.9
+Requires-Dist: SQLAlchemy==2.1.5
+Requires-Dist: python-dateutil==2.8.2
+Requires-Dist: pytest==7.4.3
+Requires-Dist: pytest-cov==4.1.0
+Requires-Dist: fastapi>=0.104.0
+Requires-Dist: uvicorn[standard]>=0.24.0
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

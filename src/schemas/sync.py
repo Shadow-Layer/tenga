@@ -114,3 +114,56 @@ class SyncServerState(BaseModel):
     subscription_expires_at: Optional[datetime] = None
     last_sync_id: str
     last_sync_timestamp: datetime
+
+
+class SyncBatchItem(BaseModel):
+    """A single item in a batch sync request."""
+    batch_id: str = Field(..., description="Batch identifier")
+    sequence: int = Field(..., description="Sequence number within batch")
+    action: str = Field(..., description="Action to perform (e.g., SALE_COMMIT)")
+    payload: Dict[str, Any] = Field(..., description="Action payload")
+
+
+class SyncBatchCreate(BaseModel):
+    """Request to submit a batch of offline transactions."""
+    device_id: str = Field(..., description="Device identifier")
+    organization_id: int = Field(..., description="Organization ID")
+    items: List[SyncBatchItem] = Field(..., description="Batch items to sync")
+
+
+class SyncBatchResponse(BaseModel):
+    """Response for submitted batch."""
+    id: str = Field(..., description="Batch ID")
+    device_id: str = Field(..., description="Device ID")
+    organization_id: int = Field(..., description="Organization ID")
+    status: str = Field(..., description="Status: PENDING, PROCESSING, COMPLETED, FAILED")
+    processed_items: int = Field(default=0, description="Number of processed items")
+    total_items: int = Field(..., description="Total number of items in batch")
+    errors: List[Dict[str, Any]] = Field(default_factory=list, description="List of errors if any")
+    created_at: datetime = Field(..., description="Batch creation timestamp")
+    updated_at: Optional[datetime] = None
+
+
+class SubscriptionStateSync(BaseModel):
+    """Subscription state for device sync."""
+    state: str = Field(..., description="State: ACTIVE, GRACE, or LIMITED")
+    expiry_date: Optional[datetime] = None
+    grace_end_date: Optional[datetime] = None
+    days_remaining: Optional[int] = None
+    operational: bool = Field(..., description="Whether subscription is operational")
+
+
+class CacheUpdateRequest(BaseModel):
+    """Request to update device cache."""
+    device_id: str = Field(..., description="Device identifier")
+    organization_id: int = Field(..., description="Organization ID")
+    subscription_state: SubscriptionStateSync = Field(..., description="Subscription state to cache")
+
+
+class CachedSubscriptionStateResponse(BaseModel):
+    """Response for cached subscription state update."""
+    id: int = Field(..., description="Cache record ID")
+    device_id: str = Field(..., description="Device ID")
+    organization_id: int = Field(..., description="Organization ID")
+    state: str = Field(..., description="Cached state")
+    last_sync_at: datetime = Field(..., description="Last sync timestamp")

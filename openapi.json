@@ -1,0 +1,4101 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tenga Inventory POS",
+    "description": "RESTful API for Tenga Inventory Point-of-Sale System",
+    "version": "T008"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Readiness Check",
+        "description": "Readiness check endpoint - verifies database connectivity.",
+        "operationId": "readiness_check_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/products": {
+      "post": {
+        "tags": [
+          "Products",
+          "products"
+        ],
+        "summary": "Create Product",
+        "description": "Create a new product.\n\nArgs:\n    product_data: Product creation data\n    db: Database session\n    \nReturns:\n    Created product\n    \nRaises:\n    404: Organization not found\n    409: SKU already exists for this organization",
+        "operationId": "create_product_api_v1_products_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Products",
+          "products"
+        ],
+        "summary": "List Products",
+        "description": "List products with pagination.\n\nArgs:\n    skip: Number of records to skip\n    limit: Number of records to return\n    organization_id: Optional filter by organization\n    db: Database session\n    \nReturns:\n    Paginated list of products",
+        "operationId": "list_products_api_v1_products_get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/products/{product_id}": {
+      "get": {
+        "tags": [
+          "Products",
+          "products"
+        ],
+        "summary": "Get Product",
+        "description": "Get product details.\n\nArgs:\n    product_id: Product ID\n    db: Database session\n    \nReturns:\n    Product details\n    \nRaises:\n    404: Product not found",
+        "operationId": "get_product_api_v1_products__product_id__get",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/locations": {
+      "post": {
+        "tags": [
+          "Locations",
+          "locations"
+        ],
+        "summary": "Create Location",
+        "description": "Create a new location.\n\nArgs:\n    location_data: Location creation data\n    db: Database session\n    \nReturns:\n    Created location\n    \nRaises:\n    404: Organization not found",
+        "operationId": "create_location_api_v1_locations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Locations",
+          "locations"
+        ],
+        "summary": "List Locations",
+        "description": "List locations with pagination.\n\nArgs:\n    skip: Number of records to skip\n    limit: Number of records to return\n    organization_id: Optional filter by organization\n    db: Database session\n    \nReturns:\n    Paginated list of locations",
+        "operationId": "list_locations_api_v1_locations_get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{location_id}": {
+      "get": {
+        "tags": [
+          "Locations",
+          "locations"
+        ],
+        "summary": "Get Location",
+        "description": "Get location details.\n\nArgs:\n    location_id: Location ID\n    db: Database session\n    \nReturns:\n    Location details\n    \nRaises:\n    404: Location not found",
+        "operationId": "get_location_api_v1_locations__location_id__get",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Location Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/locations/{location_id}/stock": {
+      "get": {
+        "tags": [
+          "Inventory",
+          "Inventory"
+        ],
+        "summary": "Get Stock At Location",
+        "description": "Get current stock for all products at a location.\n\nArgs:\n    location_id: Location ID\n    organization_id: Organization ID (required query parameter)\n    db: Database session\n    \nReturns:\n    StockResponse with list of products and quantities\n    \nRaises:\n    404: Location not found",
+        "operationId": "get_stock_at_location_api_v1_stock_locations__location_id__stock_get",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Location Id"
+            }
+          },
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/stock/movements": {
+      "get": {
+        "tags": [
+          "Inventory",
+          "Inventory"
+        ],
+        "summary": "List Movements",
+        "description": "Get paginated list of inventory movements.\n\nArgs:\n    organization_id: Organization ID (required query parameter)\n    product_id: Optional filter by product\n    location_id: Optional filter by location\n    skip: Number of records to skip (pagination)\n    limit: Number of records to return (default 20, max 100)\n    db: Database session\n    \nReturns:\n    MovementListResponse with paginated movements",
+        "operationId": "list_movements_api_v1_stock_stock_movements_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "location_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Location Id"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/stock/movements/{movement_id}": {
+      "get": {
+        "tags": [
+          "Inventory",
+          "Inventory"
+        ],
+        "summary": "Get Movement Detail",
+        "description": "Get detailed information for a specific inventory movement.\n\nArgs:\n    movement_id: Movement ID\n    organization_id: Organization ID (required query parameter)\n    db: Database session\n    \nReturns:\n    MovementDetailResponse with full movement details including product and user names\n    \nRaises:\n    404: Movement not found",
+        "operationId": "get_movement_detail_api_v1_stock_stock_movements__movement_id__get",
+        "parameters": [
+          {
+            "name": "movement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Movement Id"
+            }
+          },
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/stock/adjust": {
+      "post": {
+        "tags": [
+          "Inventory",
+          "Inventory"
+        ],
+        "summary": "Create Adjustment",
+        "description": "Record a manual inventory adjustment.\n\nArgs:\n    adjustment: Adjustment data\n    organization_id: Organization ID (required query parameter)\n    db: Database session\n    \nReturns:\n    Created InventoryMovement record\n    \nRaises:\n    404: Product or location not found\n    422: Invalid reason",
+        "operationId": "create_adjustment_api_v1_stock_stock_adjust_post",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryMovement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/stock/discrepancies": {
+      "get": {
+        "tags": [
+          "Inventory",
+          "Inventory"
+        ],
+        "summary": "List Discrepancies",
+        "description": "Get list of inventory discrepancies at a location.\n\nThis endpoint compares physical counts (if recorded) with ledger quantities.\nDiscrepancy is calculated as: physical_count - ledger_count\n\nArgs:\n    location_id: Location ID (required query parameter)\n    organization_id: Organization ID (required query parameter)\n    db: Database session\n    \nReturns:\n    DiscrepancyListResponse with list of discrepancies at location\n    \nRaises:\n    404: Location not found",
+        "operationId": "list_discrepancies_api_v1_stock_stock_discrepancies_get",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Location Id"
+            }
+          },
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscrepancyListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/organizations": {
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Create organization",
+        "description": "Create a new organization",
+        "operationId": "create_organization_organizations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "List organizations",
+        "description": "Get paginated list of all organizations",
+        "operationId": "list_organizations_organizations_get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/organizations/{org_id}": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organization",
+        "description": "Get organization details by ID",
+        "operationId": "get_organization_organizations__org_id__get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/organizations/{org_id}/users": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Add user to organization",
+        "description": "Create a new user in an organization",
+        "operationId": "create_user_organizations__org_id__users_post",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "List users in organization",
+        "description": "Get list of all users in an organization",
+        "operationId": "list_users_organizations__org_id__users_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/organizations/{org_id}/users/{user_id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get user details",
+        "description": "Get details of a specific user in an organization",
+        "operationId": "get_user_organizations__org_id__users__user_id__get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales": {
+      "post": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Create Sale",
+        "description": "Create a new sale (online or offline).\n\n- **till_id**: Till where sale is made\n- **cashier_id**: User ID of cashier\n- **payment_method**: Payment method\n- **items**: List of items with product_id, quantity, unit_price\n- **is_offline**: If true, sale is queued as PENDING (offline)\n- Returns: 201 Created with Sale object\n- Error: 404 if till not found, 422 if invalid items\n\nNote: Oversell is allowed (no stock validation per U006)",
+        "operationId": "create_sale_api_v1_sales_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaleCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "List Sales",
+        "description": "List sales with optional filtering.\n\n- **skip**: Pagination offset\n- **limit**: Pagination limit\n- **till_id**: Optional filter by till\n- **status**: Optional filter by status\n- Returns: 200 with paginated list of sales",
+        "operationId": "list_sales_api_v1_sales_get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of records to skip",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Number of records to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Number of records to return",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Number of records to return"
+          },
+          {
+            "name": "till_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Optional filter by till ID",
+              "title": "Till Id"
+            },
+            "description": "Optional filter by till ID"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Optional filter by status (PENDING, COMPLETED)",
+              "title": "Status"
+            },
+            "description": "Optional filter by status (PENDING, COMPLETED)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/{sale_id}": {
+      "get": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Get Sale",
+        "description": "Get sale details including line items.\n\n- **sale_id**: Sale ID\n- Returns: 200 with Sale details including line items\n- Error: 404 if not found",
+        "operationId": "get_sale_api_v1_sales__sale_id__get",
+        "parameters": [
+          {
+            "name": "sale_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sale Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/{sale_id}/commit": {
+      "post": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Commit Sale",
+        "description": "Commit a pending sale (idempotent).\n\n- **sale_id**: Sale ID to commit\n- **user_id**: User performing the commit\n- Returns: 200 with committed Sale\n- IDEMPOTENT: Calling twice returns 200, doesn't double-process\n- Error: 404 if sale not found, 409 if already committed\n\nOn commit:\n- Sale status changes from PENDING to COMPLETED\n- InventoryMovements are generated (idempotent - only if not already created)",
+        "operationId": "commit_sale_api_v1_sales__sale_id__commit_post",
+        "parameters": [
+          {
+            "name": "sale_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sale Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaleCommitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleCommitResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tills/": {
+      "post": {
+        "tags": [
+          "Tills"
+        ],
+        "summary": "Create Till",
+        "description": "Create a new till.\n\nArgs:\n    till_create: Till creation request\n    db: Database session\n\nReturns:\n    Created till\n\nRaises:\n    404: If location not found",
+        "operationId": "create_till_api_v1_tills__post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TillCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Tills"
+        ],
+        "summary": "List Tills",
+        "description": "List all tills with optional filtering.\n\nArgs:\n    skip: Number of records to skip\n    limit: Number of records to return\n    location_id: Optional filter by location\n    db: Database session\n\nReturns:\n    Paginated list of tills",
+        "operationId": "list_tills_api_v1_tills__get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of records to skip",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Number of records to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Number of records to return",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Number of records to return"
+          },
+          {
+            "name": "location_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Optional filter by location ID",
+              "title": "Location Id"
+            },
+            "description": "Optional filter by location ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTillResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tills/{till_id}": {
+      "get": {
+        "tags": [
+          "Tills"
+        ],
+        "summary": "Get Till",
+        "description": "Get till details.\n\nArgs:\n    till_id: Till ID\n    db: Database session\n\nReturns:\n    Till details\n\nRaises:\n    404: If till not found",
+        "operationId": "get_till_api_v1_tills__till_id__get",
+        "parameters": [
+          {
+            "name": "till_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Till Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tills/{till_id}/status": {
+      "get": {
+        "tags": [
+          "Tills"
+        ],
+        "summary": "Get Till Status",
+        "description": "Get current till session status.\n\nArgs:\n    till_id: Till ID\n    db: Database session\n\nReturns:\n    Current session status\n\nRaises:\n    404: If till not found",
+        "operationId": "get_till_status_api_v1_tills__till_id__status_get",
+        "parameters": [
+          {
+            "name": "till_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Till Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tills/{till_id}/open": {
+      "post": {
+        "tags": [
+          "Tills"
+        ],
+        "summary": "Open Till Session",
+        "description": "Open a new till session.\n\nArgs:\n    till_id: Till ID\n    session_open: Session open request\n    db: Database session\n\nReturns:\n    Opened session details\n\nRaises:\n    404: If till not found\n    409: If till already has open session\n    400: If subscription is LIMITED",
+        "operationId": "open_till_session_api_v1_tills__till_id__open_post",
+        "parameters": [
+          {
+            "name": "till_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Till Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TillSessionOpen"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillSessionOpenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tills/{till_id}/close": {
+      "post": {
+        "tags": [
+          "Tills"
+        ],
+        "summary": "Close Till Session",
+        "description": "Close the current till session.\n\nArgs:\n    till_id: Till ID\n    session_close: Session close request\n    db: Database session\n\nReturns:\n    Closed session details\n\nRaises:\n    404: If till or session not found\n    409: If till doesn't have an open session",
+        "operationId": "close_till_session_api_v1_tills__till_id__close_post",
+        "parameters": [
+          {
+            "name": "till_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Till Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TillSessionClose"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillSessionCloseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{org_id}": {
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Create subscription",
+        "description": "Create a new subscription for an organization",
+        "operationId": "create_subscription_subscriptions__org_id__post",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get current subscription",
+        "description": "Get the current subscription for an organization",
+        "operationId": "get_subscription_subscriptions__org_id__get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{org_id}/renew": {
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Renew subscription",
+        "description": "Manually renew a subscription",
+        "operationId": "renew_subscription_subscriptions__org_id__renew_post",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{org_id}/state": {
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get subscription state",
+        "description": "Get detailed subscription state information",
+        "operationId": "get_subscription_state_subscriptions__org_id__state_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionStateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sync/sync/batch": {
+      "post": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Submit Batch",
+        "description": "Submit offline batch for processing.\n\nAccepts a batch of offline transactions from a device. Implements idempotency\nso the same batch_id cannot be double-processed.\n\nStatus progression: PENDING \u2192 PROCESSING \u2192 COMPLETED or FAILED",
+        "operationId": "submit_batch_api_v1_sync_sync_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncBatchCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncBatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sync/sync/status/{batch_id}": {
+      "get": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Get Batch Status",
+        "description": "Get status of a batch processing operation.",
+        "operationId": "get_batch_status_api_v1_sync_sync_status__batch_id__get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncBatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sync/subscriptions/{org_id}/state/sync": {
+      "get": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Get Subscription State Sync",
+        "description": "Get current subscription state for device cache update.\n\nDevice uses this endpoint to fetch the authoritative subscription state\nand cache it for offline operations.",
+        "operationId": "get_subscription_state_sync_api_v1_sync_subscriptions__org_id__state_sync_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionStateSync"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sync/cache/subscription-state": {
+      "post": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Update Subscription Cache",
+        "description": "Update device's cached subscription state.\n\nDevice calls this endpoint after fetching latest subscription state\nfrom the server to persist it locally for offline operations.",
+        "operationId": "update_subscription_cache_api_v1_sync_cache_subscription_state_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CacheUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CachedSubscriptionStateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdjustmentCreate": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "location_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity",
+            "description": "Adjustment quantity (positive or negative)"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason",
+            "description": "Adjustment reason (PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE)"
+          },
+          "recorded_by_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Recorded By Id",
+            "description": "User ID recording the adjustment"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Optional adjustment notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "location_id",
+          "quantity",
+          "reason",
+          "recorded_by_id"
+        ],
+        "title": "AdjustmentCreate",
+        "description": "Request for manual inventory adjustment."
+      },
+      "CacheUpdateRequest": {
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "title": "Device Id",
+            "description": "Device identifier"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "subscription_state": {
+            "$ref": "#/components/schemas/SubscriptionStateSync",
+            "description": "Subscription state to cache"
+          }
+        },
+        "type": "object",
+        "required": [
+          "device_id",
+          "organization_id",
+          "subscription_state"
+        ],
+        "title": "CacheUpdateRequest",
+        "description": "Request to update device cache."
+      },
+      "CachedSubscriptionStateResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Cache record ID"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id",
+            "description": "Device ID"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "Cached state"
+          },
+          "last_sync_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Sync At",
+            "description": "Last sync timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "device_id",
+          "organization_id",
+          "state",
+          "last_sync_at"
+        ],
+        "title": "CachedSubscriptionStateResponse",
+        "description": "Response for cached subscription state update."
+      },
+      "Discrepancy": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "physical_count": {
+            "type": "integer",
+            "title": "Physical Count",
+            "description": "Physical count from inventory"
+          },
+          "ledger_count": {
+            "type": "integer",
+            "title": "Ledger Count",
+            "description": "Ledger count from system"
+          },
+          "discrepancy": {
+            "type": "integer",
+            "title": "Discrepancy",
+            "description": "Difference (physical - ledger)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "location_id",
+          "physical_count",
+          "ledger_count",
+          "discrepancy"
+        ],
+        "title": "Discrepancy",
+        "description": "Inventory discrepancy at a location."
+      },
+      "DiscrepancyListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Discrepancy"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of discrepancies"
+          },
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "location_id"
+        ],
+        "title": "DiscrepancyListResponse",
+        "description": "Response for list of discrepancies at a location."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InventoryMovement": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Movement ID"
+          },
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity",
+            "description": "Quantity moved (positive or negative)"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Movement reason"
+          },
+          "recorded_by_id": {
+            "type": "integer",
+            "title": "Recorded By Id",
+            "description": "User ID who recorded the movement"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Movement timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "product_id",
+          "location_id",
+          "quantity",
+          "reason",
+          "recorded_by_id",
+          "created_at"
+        ],
+        "title": "InventoryMovement",
+        "description": "Inventory movement record."
+      },
+      "LocationCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Location name"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Code",
+            "description": "Location code/identifier"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Location description"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "code",
+          "organization_id"
+        ],
+        "title": "LocationCreate",
+        "description": "Schema for creating a location."
+      },
+      "LocationListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LocationResponse"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of locations"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of locations"
+          },
+          "skip": {
+            "type": "integer",
+            "title": "Skip",
+            "description": "Number of items skipped"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Number of items returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "skip",
+          "limit"
+        ],
+        "title": "LocationListResponse",
+        "description": "Schema for paginated location list response."
+      },
+      "LocationResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Location ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Location name"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Location code"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Location description"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "code",
+          "organization_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LocationResponse",
+        "description": "Schema for location response."
+      },
+      "MovementDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Movement ID"
+          },
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name",
+            "description": "Product name"
+          },
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity",
+            "description": "Quantity moved"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Movement reason"
+          },
+          "recorded_by_id": {
+            "type": "integer",
+            "title": "Recorded By Id",
+            "description": "User ID who recorded the movement"
+          },
+          "user_name": {
+            "type": "string",
+            "title": "User Name",
+            "description": "Name of user who recorded movement"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Movement timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "product_id",
+          "product_name",
+          "location_id",
+          "quantity",
+          "reason",
+          "recorded_by_id",
+          "user_name",
+          "created_at"
+        ],
+        "title": "MovementDetailResponse",
+        "description": "Detailed inventory movement record with product and user info."
+      },
+      "MovementListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InventoryMovement"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of movements"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of movements"
+          },
+          "skip": {
+            "type": "integer",
+            "title": "Skip",
+            "description": "Number of items skipped",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Number of items returned",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "MovementListResponse",
+        "description": "Response for paginated inventory movements."
+      },
+      "OrganizationCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Organization name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Organization description"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Code",
+            "description": "Organization code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "code"
+        ],
+        "title": "OrganizationCreate",
+        "description": "Request schema for creating an organization."
+      },
+      "OrganizationListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrganizationResponse"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of organizations"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of organizations"
+          },
+          "skip": {
+            "type": "integer",
+            "title": "Skip",
+            "description": "Number of items skipped"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Number of items returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "skip",
+          "limit"
+        ],
+        "title": "OrganizationListResponse",
+        "description": "Response schema for paginated organization list."
+      },
+      "OrganizationResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Organization ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Organization name"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Organization code"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Organization description"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Whether organization is active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "code",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OrganizationResponse",
+        "description": "Response schema for a single organization."
+      },
+      "PaginatedTillResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TillResponse"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of tills"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of tills"
+          },
+          "skip": {
+            "type": "integer",
+            "title": "Skip",
+            "description": "Number of items skipped"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Number of items returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "skip",
+          "limit"
+        ],
+        "title": "PaginatedTillResponse",
+        "description": "Response schema for paginated till list.",
+        "example": {
+          "items": [
+            {
+              "code": "TILL001",
+              "created_at": "2026-10-07T16:13:50.467Z",
+              "id": 1,
+              "is_active": true,
+              "location_id": 1,
+              "name": "Till 1",
+              "organization_id": 1,
+              "updated_at": "2026-10-07T16:13:50.467Z"
+            }
+          ],
+          "limit": 10,
+          "skip": 0,
+          "total": 1
+        }
+      },
+      "ProductCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Product name"
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Sku",
+            "description": "Product SKU (must be unique per organization)"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Product description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Product category"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Price",
+            "description": "Selling price"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost",
+            "description": "Cost price"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "sku",
+          "price",
+          "organization_id"
+        ],
+        "title": "ProductCreate",
+        "description": "Schema for creating a product."
+      },
+      "ProductListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProductResponse"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of products"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of products"
+          },
+          "skip": {
+            "type": "integer",
+            "title": "Skip",
+            "description": "Number of items skipped"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Number of items returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "skip",
+          "limit"
+        ],
+        "title": "ProductListResponse",
+        "description": "Schema for paginated product list response."
+      },
+      "ProductResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Product ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Product name"
+          },
+          "sku": {
+            "type": "string",
+            "title": "Sku",
+            "description": "Product SKU"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Product description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Product category"
+          },
+          "price": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price",
+            "description": "Selling price"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost",
+            "description": "Cost price"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "sku",
+          "price",
+          "organization_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProductResponse",
+        "description": "Schema for product response."
+      },
+      "RenewalRequest": {
+        "properties": {
+          "new_expiry_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Expiry Date",
+            "description": "New expiry date (optional - service can auto-compute)"
+          }
+        },
+        "type": "object",
+        "title": "RenewalRequest",
+        "description": "Request schema for subscription renewal."
+      },
+      "SaleCommitRequest": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id",
+            "description": "User ID performing the commit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "SaleCommitRequest",
+        "description": "Request body for committing a pending sale."
+      },
+      "SaleCommitResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Sale ID"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "till_id": {
+            "type": "integer",
+            "title": "Till Id",
+            "description": "Till ID"
+          },
+          "cashier_id": {
+            "type": "integer",
+            "title": "Cashier Id",
+            "description": "Cashier user ID"
+          },
+          "total_amount": {
+            "type": "number",
+            "title": "Total Amount",
+            "description": "Total sale amount"
+          },
+          "discount_amount": {
+            "type": "number",
+            "title": "Discount Amount",
+            "description": "Total discount"
+          },
+          "tax_amount": {
+            "type": "number",
+            "title": "Tax Amount",
+            "description": "Total tax"
+          },
+          "payment_method": {
+            "type": "string",
+            "title": "Payment Method",
+            "description": "Payment method"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Sale status after commit"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "till_id",
+          "cashier_id",
+          "total_amount",
+          "discount_amount",
+          "tax_amount",
+          "payment_method",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SaleCommitResponse",
+        "description": "Response model for committed sale."
+      },
+      "SaleCreate": {
+        "properties": {
+          "till_id": {
+            "type": "integer",
+            "title": "Till Id",
+            "description": "Till ID"
+          },
+          "cashier_id": {
+            "type": "integer",
+            "title": "Cashier Id",
+            "description": "Cashier user ID"
+          },
+          "payment_method": {
+            "type": "string",
+            "title": "Payment Method",
+            "description": "Payment method (CASH, CARD, MOBILE, etc.)"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SaleLineItem"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Items",
+            "description": "Sale line items"
+          },
+          "is_offline": {
+            "type": "boolean",
+            "title": "Is Offline",
+            "description": "Whether sale is offline/pending",
+            "default": false
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Optional sale notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "till_id",
+          "cashier_id",
+          "payment_method",
+          "items"
+        ],
+        "title": "SaleCreate",
+        "description": "Request body for creating a sale."
+      },
+      "SaleItemResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Sale item ID"
+          },
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity",
+            "description": "Quantity sold"
+          },
+          "unit_price": {
+            "type": "number",
+            "title": "Unit Price",
+            "description": "Unit price"
+          },
+          "discount_per_item": {
+            "type": "number",
+            "title": "Discount Per Item",
+            "description": "Discount per item"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price",
+            "description": "Total price (quantity * unit_price - discount)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "product_id",
+          "quantity",
+          "unit_price",
+          "discount_per_item",
+          "total_price"
+        ],
+        "title": "SaleItemResponse",
+        "description": "Response model for sale line item with product details."
+      },
+      "SaleLineItem": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Quantity",
+            "description": "Quantity to sell"
+          },
+          "unit_price": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Unit Price",
+            "description": "Unit price in currency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "quantity",
+          "unit_price"
+        ],
+        "title": "SaleLineItem",
+        "description": "Line item in a sale request."
+      },
+      "SaleListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SaleResponse"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of sales"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of sales"
+          },
+          "skip": {
+            "type": "integer",
+            "title": "Skip",
+            "description": "Number of items skipped"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Number of items returned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "skip",
+          "limit"
+        ],
+        "title": "SaleListResponse",
+        "description": "Response model for paginated sales list."
+      },
+      "SaleResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Sale ID"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "till_id": {
+            "type": "integer",
+            "title": "Till Id",
+            "description": "Till ID"
+          },
+          "cashier_id": {
+            "type": "integer",
+            "title": "Cashier Id",
+            "description": "Cashier user ID"
+          },
+          "total_amount": {
+            "type": "number",
+            "title": "Total Amount",
+            "description": "Total sale amount"
+          },
+          "discount_amount": {
+            "type": "number",
+            "title": "Discount Amount",
+            "description": "Total discount"
+          },
+          "tax_amount": {
+            "type": "number",
+            "title": "Tax Amount",
+            "description": "Total tax"
+          },
+          "payment_method": {
+            "type": "string",
+            "title": "Payment Method",
+            "description": "Payment method"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Sale status (COMPLETED, PENDING, COMMITTED, etc.)"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Sale notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          },
+          "sale_items": {
+            "items": {
+              "$ref": "#/components/schemas/SaleItemResponse"
+            },
+            "type": "array",
+            "title": "Sale Items",
+            "description": "Sale line items",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "till_id",
+          "cashier_id",
+          "total_amount",
+          "discount_amount",
+          "tax_amount",
+          "payment_method",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SaleResponse",
+        "description": "Response model for a sale."
+      },
+      "StockItem": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id",
+            "description": "Product ID"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name",
+            "description": "Product name"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity",
+            "description": "Current stock quantity"
+          },
+          "last_movement_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Movement Date",
+            "description": "Last movement timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "product_name",
+          "quantity"
+        ],
+        "title": "StockItem",
+        "description": "Stock information for a single product at a location."
+      },
+      "StockResponse": {
+        "properties": {
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StockItem"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Stock items"
+          },
+          "total_items": {
+            "type": "integer",
+            "title": "Total Items",
+            "description": "Total number of items in stock"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location_id",
+          "items",
+          "total_items"
+        ],
+        "title": "StockResponse",
+        "description": "Response for current stock at a location."
+      },
+      "SubscriptionCreate": {
+        "properties": {
+          "plan_type": {
+            "type": "string",
+            "enum": [
+              "MONTHLY",
+              "ANNUAL"
+            ],
+            "title": "Plan Type",
+            "description": "Billing plan type"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Date",
+            "description": "Subscription start date (ISO 8601 format)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_type",
+          "start_date"
+        ],
+        "title": "SubscriptionCreate",
+        "description": "Request schema for creating a subscription."
+      },
+      "SubscriptionResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Subscription ID"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "plan": {
+            "type": "string",
+            "title": "Plan",
+            "description": "Billing plan (e.g., BASIC, PROFESSIONAL)"
+          },
+          "term": {
+            "type": "string",
+            "title": "Term",
+            "description": "Billing term (MONTHLY, ANNUAL)"
+          },
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "Current state (ACTIVE, GRACE, LIMITED)"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiry Date",
+            "description": "Subscription expiry date"
+          },
+          "grace_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grace End Date",
+            "description": "Grace period end date (if in grace)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Record creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Record last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "plan",
+          "term",
+          "state",
+          "expiry_date",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SubscriptionResponse",
+        "description": "Response schema for subscription details."
+      },
+      "SubscriptionStateResponse": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "GRACE",
+              "LIMITED"
+            ],
+            "title": "State",
+            "description": "Current subscription state"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiry Date",
+            "description": "Subscription expiry date"
+          },
+          "grace_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grace End Date",
+            "description": "Grace period end date"
+          },
+          "days_remaining": {
+            "type": "integer",
+            "title": "Days Remaining",
+            "description": "Days until expiry (negative if expired)"
+          },
+          "days_in_grace": {
+            "type": "integer",
+            "title": "Days In Grace",
+            "description": "Days remaining in grace period (0 if not in grace)"
+          },
+          "operational": {
+            "type": "boolean",
+            "title": "Operational",
+            "description": "True if ACTIVE or GRACE, False if LIMITED"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "expiry_date",
+          "days_remaining",
+          "days_in_grace",
+          "operational"
+        ],
+        "title": "SubscriptionStateResponse",
+        "description": "Response schema for subscription state details."
+      },
+      "SubscriptionStateSync": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "State: ACTIVE, GRACE, or LIMITED"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "grace_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grace End Date"
+          },
+          "days_remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Remaining"
+          },
+          "operational": {
+            "type": "boolean",
+            "title": "Operational",
+            "description": "Whether subscription is operational"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "operational"
+        ],
+        "title": "SubscriptionStateSync",
+        "description": "Subscription state for device sync."
+      },
+      "SyncBatchCreate": {
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "title": "Device Id",
+            "description": "Device identifier"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SyncBatchItem"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Batch items to sync"
+          }
+        },
+        "type": "object",
+        "required": [
+          "device_id",
+          "organization_id",
+          "items"
+        ],
+        "title": "SyncBatchCreate",
+        "description": "Request to submit a batch of offline transactions."
+      },
+      "SyncBatchItem": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id",
+            "description": "Batch identifier"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence",
+            "description": "Sequence number within batch"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action",
+            "description": "Action to perform (e.g., SALE_COMMIT)"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload",
+            "description": "Action payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "sequence",
+          "action",
+          "payload"
+        ],
+        "title": "SyncBatchItem",
+        "description": "A single item in a batch sync request."
+      },
+      "SyncBatchResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Batch ID"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id",
+            "description": "Device ID"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status: PENDING, PROCESSING, COMPLETED, FAILED"
+          },
+          "processed_items": {
+            "type": "integer",
+            "title": "Processed Items",
+            "description": "Number of processed items",
+            "default": 0
+          },
+          "total_items": {
+            "type": "integer",
+            "title": "Total Items",
+            "description": "Total number of items in batch"
+          },
+          "errors": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Errors",
+            "description": "List of errors if any"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Batch creation timestamp"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "device_id",
+          "organization_id",
+          "status",
+          "total_items",
+          "created_at"
+        ],
+        "title": "SyncBatchResponse",
+        "description": "Response for submitted batch."
+      },
+      "TillCreate": {
+        "properties": {
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID where till is placed"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Till code/identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Till display name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location_id",
+          "code",
+          "name"
+        ],
+        "title": "TillCreate",
+        "description": "Request schema for creating a new till.",
+        "example": {
+          "code": "TILL001",
+          "location_id": 1,
+          "name": "Till 1"
+        }
+      },
+      "TillResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Till ID"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Till code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Till name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Whether till is active",
+            "default": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "location_id",
+          "code",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TillResponse",
+        "description": "Response schema for till details.",
+        "example": {
+          "code": "TILL001",
+          "created_at": "2026-10-07T16:13:50.467Z",
+          "id": 1,
+          "is_active": true,
+          "location_id": 1,
+          "name": "Till 1",
+          "organization_id": 1,
+          "updated_at": "2026-10-07T16:13:50.467Z"
+        }
+      },
+      "TillSessionClose": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id",
+            "description": "User ID closing the till"
+          },
+          "closing_amount_cents": {
+            "type": "number",
+            "title": "Closing Amount Cents",
+            "description": "Final cash amount in cents"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Optional closing notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "closing_amount_cents"
+        ],
+        "title": "TillSessionClose",
+        "description": "Request schema for closing a till session.",
+        "example": {
+          "closing_amount_cents": 50000.0,
+          "notes": "Balance matches expected amount",
+          "user_id": 1
+        }
+      },
+      "TillSessionCloseResponse": {
+        "properties": {
+          "till_id": {
+            "type": "integer",
+            "title": "Till Id",
+            "description": "Till ID"
+          },
+          "session_id": {
+            "type": "integer",
+            "title": "Session Id",
+            "description": "Session ID"
+          },
+          "session_number": {
+            "type": "string",
+            "title": "Session Number",
+            "description": "Session number"
+          },
+          "closed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Closed At",
+            "description": "Closing timestamp"
+          },
+          "closing_balance": {
+            "type": "number",
+            "title": "Closing Balance",
+            "description": "Closing cash balance"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Session status",
+            "default": "CLOSED"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Closing notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "till_id",
+          "session_id",
+          "session_number",
+          "closed_at",
+          "closing_balance"
+        ],
+        "title": "TillSessionCloseResponse",
+        "description": "Response schema for successfully closed till session.",
+        "example": {
+          "closed_at": "2026-10-07T17:13:50.467Z",
+          "closing_balance": 50000.0,
+          "notes": "Balance verified",
+          "session_id": 10,
+          "session_number": "1-1728317630",
+          "status": "CLOSED",
+          "till_id": 1
+        }
+      },
+      "TillSessionOpen": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id",
+            "description": "Operator user ID"
+          },
+          "opening_balance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opening Balance",
+            "description": "Optional opening cash balance",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "TillSessionOpen",
+        "description": "Request schema for opening a till session.",
+        "example": {
+          "opening_balance": 5000.0,
+          "user_id": 1
+        }
+      },
+      "TillSessionOpenResponse": {
+        "properties": {
+          "till_id": {
+            "type": "integer",
+            "title": "Till Id",
+            "description": "Till ID"
+          },
+          "session_id": {
+            "type": "integer",
+            "title": "Session Id",
+            "description": "Session ID"
+          },
+          "session_number": {
+            "type": "string",
+            "title": "Session Number",
+            "description": "Session number"
+          },
+          "opened_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Opened At",
+            "description": "Opening timestamp"
+          },
+          "operator_id": {
+            "type": "integer",
+            "title": "Operator Id",
+            "description": "Operator user ID"
+          },
+          "opening_balance": {
+            "type": "number",
+            "title": "Opening Balance",
+            "description": "Opening cash balance"
+          },
+          "is_open": {
+            "type": "boolean",
+            "title": "Is Open",
+            "description": "Whether session is open",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "till_id",
+          "session_id",
+          "session_number",
+          "opened_at",
+          "operator_id",
+          "opening_balance"
+        ],
+        "title": "TillSessionOpenResponse",
+        "description": "Response schema for successfully opened till session.",
+        "example": {
+          "is_open": true,
+          "opened_at": "2026-10-07T16:13:50.467Z",
+          "opening_balance": 5000.0,
+          "operator_id": 1,
+          "session_id": 10,
+          "session_number": "1-1728317630",
+          "till_id": 1
+        }
+      },
+      "TillStatusResponse": {
+        "properties": {
+          "till_id": {
+            "type": "integer",
+            "title": "Till Id",
+            "description": "Till ID"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Current session ID"
+          },
+          "is_open": {
+            "type": "boolean",
+            "title": "Is Open",
+            "description": "Whether till is currently open",
+            "default": false
+          },
+          "opened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened At",
+            "description": "Session opening timestamp"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At",
+            "description": "Session closing timestamp"
+          },
+          "session_state": {
+            "type": "string",
+            "title": "Session State",
+            "description": "Session state (NO_SESSION, OPEN, CLOSED)",
+            "default": "NO_SESSION"
+          },
+          "operator_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Id",
+            "description": "Operator user ID"
+          },
+          "opening_balance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opening Balance",
+            "description": "Opening cash balance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "till_id"
+        ],
+        "title": "TillStatusResponse",
+        "description": "Response schema for current till session status.",
+        "example": {
+          "is_open": true,
+          "opened_at": "2026-10-07T16:13:50.467Z",
+          "opening_balance": 5000.0,
+          "operator_id": 1,
+          "session_id": 10,
+          "session_state": "OPEN",
+          "till_id": 1
+        }
+      },
+      "UserCreate": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Username",
+            "description": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email",
+            "description": "User email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name",
+            "description": "User full name"
+          },
+          "password_hash": {
+            "type": "string",
+            "title": "Password Hash",
+            "description": "Password hash"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "User role (operator, manager, admin)",
+            "default": "operator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password_hash"
+        ],
+        "title": "UserCreate",
+        "description": "Request schema for creating a user."
+      },
+      "UserListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "List of users"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of users"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "UserListResponse",
+        "description": "Response schema for user list."
+      },
+      "UserResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "User ID"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username",
+            "description": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email",
+            "description": "User email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name",
+            "description": "User full name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "User role (operator, manager, admin)"
+          },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id",
+            "description": "Organization ID"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Whether user is active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "organization_id",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserResponse",
+        "description": "Response schema for a single user."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
