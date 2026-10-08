@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.database.config import get_db
+from src.security.authorization import get_current_user
 from src.models.entities import (
     InventoryMovement,
     Product,

@@ -27,9 +27,10 @@ from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from src.database.config import get_db
+from src.security.authorization import get_current_user
 from src.models.sync import SyncLog, SyncStatus, SyncIdempotencyCache, SyncBatchTransaction, TransactionStatus
 from src.models.cached_subscription_state import CachedSubscriptionState
-from src.models.entities import Organization, Subscription
+from src.models.entities import Organization, Subscription, User
 from src.schemas.sync import (
     SyncBatchCreate,
     SyncBatchResponse,

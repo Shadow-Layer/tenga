@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from src.database.config import get_db
 from src.services.sale_service import SaleService
-from src.models.entities import Sale, Till
+from src.models.entities import Sale, Till, User
 from src.schemas.sale import (
     SaleCreate,
     SaleResponse,
@@ -33,6 +33,7 @@ from src.schemas.sale import (
     SaleCommitResponse,
     SaleItemResponse,
 )
+from src.security.authorization import get_current_user
 
 router = APIRouter()
 
@@ -41,6 +42,7 @@ router = APIRouter()
 def create_sale(
     sale_data: SaleCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Create a new sale (online or offline).
@@ -56,8 +58,11 @@ def create_sale(
     Note: Oversell is allowed (no stock validation per U006)
     """
     try:
-        # Validate till exists
-        till = db.query(Till).filter(Till.id == sale_data.till_id).first()
+        # Validate till exists and belongs to user's organization
+        till = db.query(Till).filter(
+            Till.id == sale_data.till_id,
+            Till.organization_id == current_user.organization_id,
+        ).first()
         if not till:
             raise HTTPException(
                 status_code=404,
@@ -106,6 +111,7 @@ def list_sales(
     till_id: int = Query(None, description="Optional filter by till ID"),
     status: str = Query(None, description="Optional filter by status (PENDING, COMPLETED)"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     List sales with optional filtering.
@@ -116,11 +122,19 @@ def list_sales(
     - **status**: Optional filter by status
     - Returns: 200 with paginated list of sales
     """
-    query = db.query(Sale)
+    query = db.query(Sale).filter(Sale.organization_id == current_user.organization_id)
 
     # Apply filters
     if till_id:
+        # Verify till belongs to user's organization
+        till = db.query(Till).filter(
+            Till.id == till_id,
+            Till.organization_id == current_user.organization_id,
+        ).first()
+        if not till:
+            raise HTTPException(status_code=403, detail="Access denied to this till")
         query = query.filter(Sale.till_id == till_id)
+    
     if status:
         query = query.filter(Sale.status == status)
 
@@ -142,19 +156,25 @@ def list_sales(
 def get_sale(
     sale_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get sale details including line items.
 
     - **sale_id**: Sale ID
     - Returns: 200 with Sale details including line items
-    - Error: 404 if not found
+    - Error: 404 if not found or 403 if not authorized
     """
     sale = db.query(Sale).filter(Sale.id == sale_id).first()
     if not sale:
         raise HTTPException(status_code=404, detail=f"Sale {sale_id} not found")
+    
+    # Check authorization
+    if sale.organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this sale")
 
     return SaleResponse.from_orm(sale)
+
 
 
 @router.post("/sales/{sale_id}/commit", response_model=SaleCommitResponse)
@@ -162,6 +182,7 @@ def commit_sale(
     sale_id: int,
     commit_data: SaleCommitRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Commit a pending sale (idempotent).
@@ -180,6 +201,10 @@ def commit_sale(
     sale = db.query(Sale).filter(Sale.id == sale_id).first()
     if not sale:
         raise HTTPException(status_code=404, detail=f"Sale {sale_id} not found")
+    
+    # Check authorization
+    if sale.organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this sale")
 
     # Check if already committed (idempotency)
     if sale.status == "COMPLETED":
@@ -202,3 +227,4 @@ def commit_sale(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+

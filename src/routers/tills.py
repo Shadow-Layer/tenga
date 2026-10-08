@@ -23,7 +23,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from src.database.config import get_db
-from src.models.entities import Till, Location, TillSession, Organization
+from src.security.authorization import get_current_user
+from src.models.entities import Till, Location, TillSession, Organization, User
 from src.services.till_service import TillService
 from src.schemas.till import (
     TillCreate,
@@ -43,21 +44,28 @@ router = APIRouter()
 def create_till(
     till_create: TillCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> TillResponse:
     """Create a new till.
 
     Args:
         till_create: Till creation request
         db: Database session
+        current_user: Current authenticated user
 
     Returns:
         Created till
 
     Raises:
+        401: If not authenticated
+        403: If user is not in the same organization or location
         404: If location not found
     """
-    # Verify location exists
-    location = db.query(Location).filter(Location.id == till_create.location_id).first()
+    # Verify location exists and belongs to user's organization
+    location = db.query(Location).filter(
+        Location.id == till_create.location_id,
+        Location.organization_id == current_user.organization_id,
+    ).first()
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
 
@@ -77,12 +85,14 @@ def create_till(
     return TillResponse.from_orm(till)
 
 
+
 @router.get("/", response_model=PaginatedTillResponse)
 def list_tills(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(10, ge=1, le=100, description="Number of records to return"),
     location_id: int = Query(None, description="Optional filter by location ID"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> PaginatedTillResponse:
     """List all tills with optional filtering.
 
@@ -91,13 +101,25 @@ def list_tills(
         limit: Number of records to return
         location_id: Optional filter by location
         db: Database session
+        current_user: Current authenticated user
 
     Returns:
         Paginated list of tills
+        
+    Raises:
+        401: If not authenticated
+        403: If trying to access another organization's tills
     """
-    query = db.query(Till)
+    query = db.query(Till).filter(Till.organization_id == current_user.organization_id)
 
     if location_id is not None:
+        # Verify location belongs to user's organization
+        location = db.query(Location).filter(
+            Location.id == location_id,
+            Location.organization_id == current_user.organization_id,
+        ).first()
+        if not location:
+            raise HTTPException(status_code=403, detail="Access denied to this location")
         query = query.filter(Till.location_id == location_id)
 
     total = query.count()
@@ -115,46 +137,63 @@ def list_tills(
 def get_till(
     till_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> TillResponse:
     """Get till details.
 
     Args:
         till_id: Till ID
         db: Database session
+        current_user: Current authenticated user
 
     Returns:
         Till details
 
     Raises:
+        401: If not authenticated
+        403: If till belongs to another organization
         404: If till not found
     """
     till = db.query(Till).filter(Till.id == till_id).first()
     if not till:
         raise HTTPException(status_code=404, detail="Till not found")
+    
+    # Check authorization
+    if till.organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this till")
 
     return TillResponse.from_orm(till)
+
 
 
 @router.get("/{till_id}/status", response_model=TillStatusResponse)
 def get_till_status(
     till_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> TillStatusResponse:
     """Get current till session status.
 
     Args:
         till_id: Till ID
         db: Database session
+        current_user: Current authenticated user
 
     Returns:
         Current session status
 
     Raises:
+        401: If not authenticated
+        403: If till belongs to another organization
         404: If till not found
     """
     till = db.query(Till).filter(Till.id == till_id).first()
     if not till:
         raise HTTPException(status_code=404, detail="Till not found")
+    
+    # Check authorization
+    if till.organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this till")
 
     # Get current open session if any
     current_session = TillService.get_current_open_session(till_id, db)
@@ -188,6 +227,7 @@ def open_till_session(
     till_id: int,
     session_open: TillSessionOpen,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> TillSessionOpenResponse:
     """Open a new till session.
 
@@ -195,6 +235,7 @@ def open_till_session(
         till_id: Till ID
         session_open: Session open request
         db: Database session
+        current_user: Current authenticated user
 
     Returns:
         Opened session details

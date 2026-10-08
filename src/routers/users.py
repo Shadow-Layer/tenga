@@ -21,6 +21,8 @@ from src.schemas.user import (
     UserResponse,
     UserListResponse,
 )
+from src.security.password import hash_password
+from src.security.authorization import get_current_user, check_role
 
 router = APIRouter()
 
@@ -36,6 +38,7 @@ def create_user(
     org_id: int,
     user_data: UserCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Create a new user in an organization.
     
@@ -43,14 +46,27 @@ def create_user(
         org_id: Organization ID
         user_data: User creation data
         db: Database session
+        current_user: Current authenticated user (must be admin or manager)
         
     Returns:
         UserResponse: Created user
         
     Raises:
+        401: If not authenticated
+        403: If user lacks permission to create users
         404: If organization not found
         409: If email already exists in organization
     """
+    # Check authorization - only admins and managers can create users
+    if current_user.organization_id != org_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
+    if current_user.role not in ("admin", "manager"):
+        raise HTTPException(
+            status_code=403,
+            detail="Only admin or manager can create users"
+        )
+    
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -67,13 +83,16 @@ def create_user(
             detail=f"User with email '{user_data.email}' already exists in this organization"
         )
     
+    # Hash password
+    password_hash = hash_password(user_data.password)
+    
     # Create new user
     user = User(
         organization_id=org_id,
         email=user_data.email,
         username=user_data.username,
         full_name=user_data.full_name,
-        password_hash=user_data.password_hash,
+        password_hash=password_hash,
         role=user_data.role,
         is_active=True,
     )
@@ -93,19 +112,27 @@ def create_user(
 def list_users(
     org_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List all users in an organization.
     
     Args:
         org_id: Organization ID
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         UserListResponse: List of users in organization
         
     Raises:
+        401: If not authenticated
+        403: If user is not in the same organization
         404: If organization not found
     """
+    # Check authorization
+    if current_user.organization_id != org_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -130,6 +157,7 @@ def get_user(
     org_id: int,
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get details of a specific user.
     
@@ -137,13 +165,20 @@ def get_user(
         org_id: Organization ID
         user_id: User ID
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         UserResponse: User details
         
     Raises:
+        401: If not authenticated
+        403: If user is not in the same organization
         404: If organization or user not found
     """
+    # Check authorization
+    if current_user.organization_id != org_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -158,3 +193,4 @@ def get_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     return user
+

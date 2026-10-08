@@ -13,6 +13,8 @@ from src.models.entities import (
     Subscription,
 )
 from src.models.subscription import SubscriptionState, SubscriptionTerm
+from src.security.password import hash_password
+from src.security.auth import create_access_token
 from src.main import app
 
 
@@ -38,13 +40,13 @@ def org(db: Session):
 
 @pytest.fixture
 def user(db: Session, org: Organization):
-    """Create a test user (cashier)."""
+    """Create a test user (cashier) with hashed password."""
     user = User(
         organization_id=org.id,
         email="cashier@test.com",
         username="cashier",
         full_name="Test Cashier",
-        password_hash="hashed_password",
+        password_hash=hash_password("cashier_password"),
         role="operator",
     )
     db.add(user)
@@ -117,14 +119,48 @@ def subscription_active(db: Session, org: Organization):
 
 
 @pytest.fixture
-def client(db: Session):
-    """Create a test client with dependency override."""
+def client(db: Session, user: User):
+    """Create a test client with dependency override and authentication."""
     def override_get_db():
         yield db
     
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
+    test_client = TestClient(app)
+    
+    # Login to get token
+    response = test_client.post(
+        "/api/v1/auth/login",
+        json={"email": "cashier@test.com", "password": "cashier_password"}
+    )
+    if response.status_code == 200:
+        token = response.json()["access_token"]
+        # Add authorization header to default headers
+        test_client.headers["Authorization"] = f"Bearer {token}"
+    
+    yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authenticated_client(db: Session, user: User):
+    """Create an authenticated test client."""
+    def override_get_db():
+        yield db
+    
+    app.dependency_overrides[get_db] = override_get_db
+    test_client = TestClient(app)
+    
+    # Login to get token
+    response = test_client.post(
+        "/api/v1/auth/login",
+        json={"email": "cashier@test.com", "password": "cashier_password"}
+    )
+    if response.status_code == 200:
+        token = response.json()["access_token"]
+        # Add authorization header to default headers
+        test_client.headers["Authorization"] = f"Bearer {token}"
+    
+    yield test_client
     app.dependency_overrides.clear()
 
 
@@ -146,3 +182,55 @@ def subscription(db: Session, org: Organization):
     db.commit()
     return sub
 
+
+
+@pytest.fixture
+def admin_user(db: Session, org: Organization):
+    """Create a test admin user."""
+    admin = User(
+        organization_id=org.id,
+        email="admin@test.com",
+        username="admin",
+        full_name="Test Admin",
+        password_hash=hash_password("admin_password"),
+        role="admin",
+    )
+    db.add(admin)
+    db.commit()
+    return admin
+
+
+@pytest.fixture
+def admin_client(db: Session, admin_user: User):
+    """Create a test client authenticated as admin."""
+    def override_get_db():
+        yield db
+    
+    app.dependency_overrides[get_db] = override_get_db
+    test_client = TestClient(app)
+    
+    # Login to get token
+    response = test_client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@test.com", "password": "admin_password"}
+    )
+    if response.status_code == 200:
+        token = response.json()["access_token"]
+        test_client.headers["Authorization"] = f"Bearer {token}"
+    
+    yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def unauthenticated_client(db: Session):
+    """Create a test client WITHOUT authentication."""
+    def override_get_db():
+        yield db
+    
+    app.dependency_overrides[get_db] = override_get_db
+    test_client = TestClient(app)
+    
+    # DO NOT add any auth header
+    yield test_client
+    app.dependency_overrides.clear()

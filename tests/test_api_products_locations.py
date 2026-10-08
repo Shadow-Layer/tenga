@@ -48,7 +48,7 @@ class TestProducts:
         assert response.status_code == 409
     
     def test_nonexistent_org(self, client: TestClient):
-        """Test 404 for nonexistent organization."""
+        """Test 403 for cross-organization access (proper auth behavior)."""
         response = client.post(
             "/api/v1/products",
             json={
@@ -59,7 +59,7 @@ class TestProducts:
                 "cost": 5.00
             }
         )
-        assert response.status_code == 404
+        assert response.status_code == 403
 
 
 class TestLocations:

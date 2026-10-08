@@ -14,27 +14,39 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from src.database.config import get_db
-from src.models.entities import Product, Organization
+from src.models.entities import Product, Organization, User
 from src.schemas.product import ProductCreate, ProductResponse, ProductListResponse
+from src.security.authorization import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/products", response_model=ProductResponse, status_code=201, tags=["products"])
-def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
+def create_product(
+    product_data: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Create a new product.
     
     Args:
         product_data: Product creation data
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Created product
         
     Raises:
+        401: If not authenticated
+        403: If user is not in the same organization
         404: Organization not found
         409: SKU already exists for this organization
     """
+    # Check authorization - user must be in the same organization
+    if current_user.organization_id != product_data.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
     # Verify organization exists
     org = db.query(Organization).filter(Organization.id == product_data.organization_id).first()
     if not org:
@@ -67,6 +79,7 @@ def list_products(
     limit: int = Query(10, ge=1, le=100),
     organization_id: int = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List products with pagination.
     
@@ -75,14 +88,24 @@ def list_products(
         limit: Number of records to return
         organization_id: Optional filter by organization
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Paginated list of products
+        
+    Raises:
+        401: If not authenticated
+        403: If trying to access another organization's products
     """
-    query = db.query(Product)
+    # Default to current user's organization if not specified
+    if organization_id is None:
+        organization_id = current_user.organization_id
     
-    if organization_id is not None:
-        query = query.filter(Product.organization_id == organization_id)
+    # Check authorization - can only list own organization's products
+    if organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
+    query = db.query(Product).filter(Product.organization_id == organization_id)
     
     total = query.count()
     items = query.offset(skip).limit(limit).all()
@@ -96,21 +119,33 @@ def list_products(
 
 
 @router.get("/products/{product_id}", response_model=ProductResponse, tags=["products"])
-def get_product(product_id: int, db: Session = Depends(get_db)):
+def get_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Get product details.
     
     Args:
         product_id: Product ID
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Product details
         
     Raises:
+        401: If not authenticated
+        403: If product belongs to another organization
         404: Product not found
     """
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
+    # Check authorization - product must belong to user's organization
+    if product.organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this product")
+    
     return product
+

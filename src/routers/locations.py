@@ -13,26 +13,38 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from src.database.config import get_db
-from src.models.entities import Location, Organization
+from src.models.entities import Location, Organization, User
 from src.schemas.location import LocationCreate, LocationResponse, LocationListResponse
+from src.security.authorization import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/locations", response_model=LocationResponse, status_code=201, tags=["locations"])
-def create_location(location_data: LocationCreate, db: Session = Depends(get_db)):
+def create_location(
+    location_data: LocationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Create a new location.
     
     Args:
         location_data: Location creation data
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Created location
         
     Raises:
+        401: If not authenticated
+        403: If user is not in the same organization
         404: Organization not found
     """
+    # Check authorization
+    if current_user.organization_id != location_data.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
     # Verify organization exists
     org = db.query(Organization).filter(Organization.id == location_data.organization_id).first()
     if not org:
@@ -58,6 +70,7 @@ def list_locations(
     limit: int = Query(10, ge=1, le=100),
     organization_id: int = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List locations with pagination.
     
@@ -66,14 +79,24 @@ def list_locations(
         limit: Number of records to return
         organization_id: Optional filter by organization
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Paginated list of locations
+        
+    Raises:
+        401: If not authenticated
+        403: If trying to access another organization's locations
     """
-    query = db.query(Location)
+    # Default to current user's organization if not specified
+    if organization_id is None:
+        organization_id = current_user.organization_id
     
-    if organization_id is not None:
-        query = query.filter(Location.organization_id == organization_id)
+    # Check authorization - can only list own organization's locations
+    if organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+    
+    query = db.query(Location).filter(Location.organization_id == organization_id)
     
     total = query.count()
     items = query.offset(skip).limit(limit).all()
@@ -87,21 +110,33 @@ def list_locations(
 
 
 @router.get("/locations/{location_id}", response_model=LocationResponse, tags=["locations"])
-def get_location(location_id: int, db: Session = Depends(get_db)):
+def get_location(
+    location_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Get location details.
     
     Args:
         location_id: Location ID
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Location details
         
     Raises:
+        401: If not authenticated
+        403: If location belongs to another organization
         404: Location not found
     """
     location = db.query(Location).filter(Location.id == location_id).first()
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     
+    # Check authorization - location must belong to user's organization
+    if location.organization_id != current_user.organization_id:
+        raise HTTPException(status_code=403, detail="Access denied to this location")
+    
     return location
+

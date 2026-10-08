@@ -20,7 +20,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.database.config import get_db
-from src.models.entities import Subscription, Organization
+from src.security.authorization import get_current_user
+from src.models.entities import Subscription, Organization, User
 from src.schemas.subscription import (
     SubscriptionCreate,
     SubscriptionResponse,

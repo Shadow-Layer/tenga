@@ -46,15 +46,15 @@ class TestOrganizations:
 class TestUsers:
     """Tests for user endpoints."""
     
-    def test_create_user(self, client: TestClient, org):
+    def test_create_user(self, admin_client: TestClient, org):
         """Test creating user."""
-        response = client.post(
+        response = admin_client.post(
             f"/organizations/{org.id}/users",
             json={
                 "email": "newuser@test.com",
                 "username": "newuser",
                 "full_name": "New User",
-                "password_hash": "hashed",
+                "password": "newuser_secure_password",
                 "role": "operator"
             }
         )
@@ -74,15 +74,15 @@ class TestUsers:
         data = response.json()
         assert data["total"] > 0
     
-    def test_duplicate_email(self, client: TestClient, org, user):
+    def test_duplicate_email(self, admin_client: TestClient, org, user):
         """Test 409 for duplicate email."""
-        response = client.post(
+        response = admin_client.post(
             f"/organizations/{org.id}/users",
             json={
                 "email": "cashier@test.com",
                 "username": "different",
                 "full_name": "Other",
-                "password_hash": "hashed",
+                "password": "secure_password",
                 "role": "operator"
             }
         )

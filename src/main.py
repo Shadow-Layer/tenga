@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 from src.config import API_TITLE, API_DESCRIPTION, API_VERSION, CORS_ORIGINS, CORS_ALLOW_CREDENTIALS, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS, DEBUG
 from src.database.config import get_db, init_db
-from src.routers import products, locations, organizations, users, sales, tills, inventory, sync, subscriptions
+from src.routers import products, locations, organizations, users, sales, tills, inventory, sync, subscriptions, auth
 
 # Configure logging
 logging.basicConfig(level=logging.INFO if not DEBUG else logging.DEBUG)
@@ -119,6 +119,7 @@ async def general_exception_handler(request, exc):
 
 
 # Include routers
+app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
 app.include_router(products.router, prefix="/api/v1", tags=["Products"])
 app.include_router(locations.router, prefix="/api/v1", tags=["Locations"])
 app.include_router(inventory.router, prefix="/api/v1/stock", tags=["Inventory"])
