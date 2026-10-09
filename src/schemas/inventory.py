@@ -58,12 +58,16 @@ class MovementDetailResponse(BaseModel):
 
 
 class AdjustmentCreate(BaseModel):
-    """Request for manual inventory adjustment."""
+    """Request for manual inventory adjustment.
+    
+    CRITICAL: recorded_by_id and organization_id are NOT sent by client.
+    These are derived from the authenticated JWT token by the backend.
+    The backend establishes trusted identity and tenancy from authentication.
+    """
     product_id: int = Field(..., gt=0, description="Product ID")
     location_id: int = Field(..., gt=0, description="Location ID")
     quantity: int = Field(..., description="Adjustment quantity (positive or negative)")
-    reason: str = Field(..., min_length=1, description="Adjustment reason (PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE)")
-    recorded_by_id: int = Field(..., gt=0, description="User ID recording the adjustment")
+    reason: str = Field(..., min_length=1, description="Adjustment reason (PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE, ADJUSTMENT)")
     note: Optional[str] = Field(None, description="Optional adjustment notes")
 
 

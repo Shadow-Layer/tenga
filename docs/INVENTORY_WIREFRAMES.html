@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenga Inventory - Wireframes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --color-neutral-900: #111827;
+            --color-neutral-700: #374151;
+            --color-neutral-600: #4B5563;
+            --color-neutral-200: #E5E7EB;
+            --color-success-600: #16A34A;
+            --color-warning-600: #D97706;
+            --color-error-600: #DC2626;
+            --color-offline-600: #7C3AED;
+            --spacing-base: 4px;
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .screen { min-height: 100vh; padding: calc(var(--spacing-base) * 4); background: #F9FAFB; }
+        .screen.mobile { max-width: 480px; margin: 0 auto; }
+        .screen.tablet { max-width: 1024px; margin: 0 auto; }
+        .card { background: white; border-radius: 8px; padding: calc(var(--spacing-base) * 4); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: calc(var(--spacing-base) * 6); border-bottom: 1px solid var(--color-neutral-200); padding-bottom: calc(var(--spacing-base) * 4); }
+        .btn { padding: calc(var(--spacing-base) * 2) calc(var(--spacing-base) * 4); border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
+        .btn-primary { background: var(--color-success-600); color: white; }
+        .btn-secondary { background: var(--color-neutral-200); color: var(--color-neutral-900); }
+        .btn:hover { opacity: 0.9; }
+        .state-indicator { display: inline-block; padding: calc(var(--spacing-base) * 1) calc(var(--spacing-base) * 2); border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: calc(var(--spacing-base) * 4); }
+        .state-default { background: #D1FAE5; color: #065F46; }
+        .state-loading { background: #FEF08A; color: #78350F; }
+        .state-empty { background: #E0E7FF; color: #3730A3; }
+        .state-error { background: #FEE2E2; color: #7F1D1D; }
+        .state-offline { background: #EDE9FE; color: #4C1D95; }
+        .status-badge { display: inline-block; padding: calc(var(--spacing-base) * 1) calc(var(--spacing-base) * 2); border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .status-online { background: var(--color-success-600); color: white; }
+        .status-offline { background: var(--color-offline-600); color: white; }
+        .status-error { background: var(--color-error-600); color: white; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #E5E7EB; border-top-color: var(--color-neutral-700); border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: calc(var(--spacing-base) * 3); text-align: left; border-bottom: 1px solid var(--color-neutral-200); }
+        th { background: #F3F4F6; font-weight: 600; font-size: 14px; }
+        tr:hover { background: #F9FAFB; }
+        .form-group { margin-bottom: calc(var(--spacing-base) * 4); }
+        label { display: block; margin-bottom: calc(var(--spacing-base) * 1); font-weight: 500; color: var(--color-neutral-900); font-size: 14px; }
+        input, textarea, select { width: 100%; padding: calc(var(--spacing-base) * 2) calc(var(--spacing-base) * 3); border: 1px solid var(--color-neutral-200); border-radius: 6px; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--color-success-600); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+        .stat-card { background: white; padding: calc(var(--spacing-base) * 4); border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--color-neutral-900); }
+        .stat-label { font-size: 12px; color: var(--color-neutral-600); margin-top: calc(var(--spacing-base) * 1); }
+        .section-title { font-size: 18px; font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 3); margin-top: calc(var(--spacing-base) * 4); }
+        .empty-state { text-align: center; padding: calc(var(--spacing-base) * 8); color: var(--color-neutral-600); }
+        .empty-icon { font-size: 48px; margin-bottom: calc(var(--spacing-base) * 2); }
+        .error-alert { background: #FEE2E2; border-left: 4px solid var(--color-error-600); padding: calc(var(--spacing-base) * 3); border-radius: 6px; color: #7F1D1D; margin-bottom: calc(var(--spacing-base) * 4); }
+        .offline-banner { background: var(--color-offline-600); color: white; padding: calc(var(--spacing-base) * 3) calc(var(--spacing-base) * 4); border-radius: 6px; margin-bottom: calc(var(--spacing-base) * 4); display: flex; align-items: center; gap: calc(var(--spacing-base) * 2); }
+        .page-title { font-size: 28px; font-weight: 700; color: var(--color-neutral-900); }
+        .breadcrumb { font-size: 12px; color: var(--color-neutral-600); margin-bottom: calc(var(--spacing-base) * 4); }
+        .breadcrumb a { color: var(--color-success-600); text-decoration: none; }
+        .mt-4 { margin-top: calc(var(--spacing-base) * 4); }
+        .mt-6 { margin-top: calc(var(--spacing-base) * 6); }
+        .mb-4 { margin-bottom: calc(var(--spacing-base) * 4); }
+        .flex { display: flex; }
+        .gap-2 { gap: calc(var(--spacing-base) * 2); }
+        .gap-4 { gap: calc(var(--spacing-base) * 4); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--spacing-base) * 4); }
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; }
+            th, td { padding: calc(var(--spacing-base) * 2); font-size: 13px; }
+            .page-title { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="screen mobile">
+    <div class="state-indicator state-default">State: Default</div>
+    <h1 class="page-title mb-4">Inventory Overview</h1>
+    <div class="breadcrumb">Dashboard / Inventory</div>
+    
+    <div class="grid-2 mb-4">
+        <div class="stat-card">
+            <div class="stat-value">847</div>
+            <div class="stat-label">Total Products</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">12</div>
+            <div class="stat-label">Low Stock</div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <h2 class="section-title">Low Stock Alert</h2>
+        <div style="font-size: 14px; color: var(--color-neutral-700);">
+            <p style="margin-bottom: calc(var(--spacing-base) * 2);">Product Codes: SKU-1024, SKU-2015, SKU-3456</p>
+            <button class="btn btn-primary">Review Low Stock</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Recent Activity</h2>
+        <div style="font-size: 12px; color: var(--color-neutral-600); padding: calc(var(--spacing-base) * 2); background: #F9FAFB; border-radius: 4px; text-align: center;">Stock adjustment recorded 2 hours ago</div>
+    </div>
+</div>
+
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-offline">State: Offline</div>
+    <h1 class="page-title mb-4">Inventory Overview</h1>
+    <div class="breadcrumb">Dashboard / Inventory</div>
+    
+    <div class="offline-banner">
+        <span>⚠️</span>
+        <span><strong>Offline Mode:</strong> Syncing paused. Changes will sync when connection restored.</span>
+    </div>
+
+    <div class="grid-2 mb-4">
+        <div class="stat-card">
+            <div class="stat-value">847</div>
+            <div class="stat-label">Total Products</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">12</div>
+            <div class="stat-label">Low Stock (cached)</div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <h2 class="section-title">Low Stock Alert</h2>
+        <div style="font-size: 14px; color: var(--color-neutral-700);">
+            <p style="margin-bottom: calc(var(--spacing-base) * 2);">Product Codes: SKU-1024, SKU-2015, SKU-3456</p>
+            <p style="font-size: 12px; color: var(--color-neutral-600); margin-bottom: calc(var(--spacing-base) * 2);">Last updated: 4 hours ago</p>
+            <button class="btn btn-secondary">Review Low Stock</button>
+        </div>
+    </div>
+</div>
+
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-loading">State: Loading</div>
+    <h1 class="page-title mb-4">Inventory Overview</h1>
+    <div class="breadcrumb">Dashboard / Inventory</div>
+    
+    <div class="grid-2 mb-4">
+        <div class="stat-card">
+            <div style="width: 80px; height: 32px; background: #E5E7EB; border-radius: 4px; margin: 0 auto; margin-bottom: calc(var(--spacing-base) * 2);"></div>
+            <div class="stat-label">Loading...</div>
+        </div>
+        <div class="stat-card">
+            <div style="width: 60px; height: 32px; background: #E5E7EB; border-radius: 4px; margin: 0 auto; margin-bottom: calc(var(--spacing-base) * 2);"></div>
+            <div class="stat-label">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-empty">State: Empty</div>
+    <h1 class="page-title mb-4">Inventory Overview</h1>
+    <div class="breadcrumb">Dashboard / Inventory</div>
+    
+    <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3 style="font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 2);">No Products Yet</h3>
+        <p style="color: var(--color-neutral-600); margin-bottom: calc(var(--spacing-base) * 4);">Your inventory is empty. Add your first product to get started.</p>
+        <button class="btn btn-primary">Add Product</button>
+    </div>
+</div>
+
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-error">State: Error</div>
+    <h1 class="page-title mb-4">Inventory Overview</h1>
+    <div class="breadcrumb">Dashboard / Inventory</div>
+    
+    <div class="error-alert">
+        <strong>Error loading inventory.</strong> Unable to retrieve data from server. <a href="#" style="color: inherit; text-decoration: underline;">Retry</a>
+    </div>
+
+    <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <h3 style="font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 2);">Failed to Load</h3>
+        <p style="color: var(--color-neutral-600); margin-bottom: calc(var(--spacing-base) * 4);">Please check your connection and try again.</p>
+        <button class="btn btn-primary">Retry</button>
+    </div>
+</div>
+
+<!-- Product List Screen -->
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-default">State: Default</div>
+    <div class="header">
+        <h1 class="page-title" style="margin: 0;">Products</h1>
+        <button class="btn btn-primary">+ Add</button>
+    </div>
+    
+    <input type="text" placeholder="Search products..." style="margin-bottom: calc(var(--spacing-base) * 4);">
+    
+    <div class="card mb-4" style="padding: calc(var(--spacing-base) * 3);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 1);">SKU-1024</div>
+                <div style="font-size: 14px; color: var(--color-neutral-700); margin-bottom: calc(var(--spacing-base) * 2);">Premium Product Name</div>
+                <div style="font-size: 12px; color: var(--color-neutral-600);">Stock: <strong>45 units</strong></div>
+            </div>
+            <div style="text-align: right;">
+                <span class="status-badge status-online" style="margin-bottom: calc(var(--spacing-base) * 2);">✓</span>
+                <div style="font-size: 12px; color: var(--color-neutral-600);">$24.99</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4" style="padding: calc(var(--spacing-base) * 3);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 1);">SKU-2015</div>
+                <div style="font-size: 14px; color: var(--color-neutral-700); margin-bottom: calc(var(--spacing-base) * 2);">Low Stock Product</div>
+                <div style="font-size: 12px; color: var(--color-warning-600);"><strong>Stock: 3 units (LOW)</strong></div>
+            </div>
+            <div style="text-align: right;">
+                <span class="status-badge" style="background: var(--color-warning-600); color: white; margin-bottom: calc(var(--spacing-base) * 2);">⚠️</span>
+                <div style="font-size: 12px; color: var(--color-neutral-600);">$18.99</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: calc(var(--spacing-base) * 6); color: var(--color-neutral-600); font-size: 12px;">Showing 1-2 of 847 products</div>
+</div>
+
+<!-- Add/Edit Product Form -->
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-default">State: Default - New Product</div>
+    <div class="breadcrumb"><a href="#">Products</a> / New Product</div>
+    <h1 class="page-title mb-4">Add Product</h1>
+    
+    <div class="card">
+        <div class="form-group">
+            <label>Product Code (SKU)</label>
+            <input type="text" placeholder="e.g., SKU-1001" value="">
+        </div>
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" placeholder="Product name" value="">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea placeholder="Optional product description" rows="3"></textarea>
+        </div>
+        
+        <div class="section-title">Pricing</div>
+        <div class="form-group">
+            <label>Cost Price</label>
+            <input type="number" placeholder="0.00" value="">
+        </div>
+        <div class="form-group">
+            <label>Selling Price</label>
+            <input type="number" placeholder="0.00" value="">
+        </div>
+
+        <div class="section-title">Advanced</div>
+        <div class="form-group">
+            <label>Category</label>
+            <select><option>Select category...</option></select>
+        </div>
+        <div class="form-group">
+            <label>Barcode</label>
+            <input type="text" placeholder="Optional barcode" value="">
+        </div>
+
+        <div style="display: flex; gap: calc(var(--spacing-base) * 2); margin-top: calc(var(--spacing-base) * 6);">
+            <button class="btn btn-primary" style="flex: 1;">Save Product</button>
+            <button class="btn btn-secondary" style="flex: 1;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Product Detail Screen -->
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-default">State: Default</div>
+    <div class="breadcrumb"><a href="#">Products</a> / SKU-1024</div>
+    <div class="header">
+        <h1 class="page-title" style="margin: 0;">SKU-1024</h1>
+        <button class="btn btn-secondary">Edit</button>
+    </div>
+    
+    <div class="card mb-4">
+        <h2 class="section-title">Product Information</h2>
+        <div style="display: grid; gap: calc(var(--spacing-base) * 2); font-size: 14px;">
+            <div>
+                <span style="color: var(--color-neutral-600);">Name:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">Premium Product</span>
+            </div>
+            <div>
+                <span style="color: var(--color-neutral-600);">Selling Price:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">$24.99</span>
+            </div>
+            <div>
+                <span style="color: var(--color-neutral-600);">Cost Price:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">$12.00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <h2 class="section-title">Stock by Location</h2>
+        <div style="display: grid; gap: calc(var(--spacing-base) * 3);">
+            <div style="padding: calc(var(--spacing-base) * 2); background: #F9FAFB; border-radius: 4px;">
+                <div style="font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 1);">Main Store</div>
+                <div style="font-size: 14px; color: var(--color-neutral-700);">Stock: <strong>45 units</strong></div>
+                <button class="btn btn-secondary" style="margin-top: calc(var(--spacing-base) * 2); padding: calc(var(--spacing-base) * 1) calc(var(--spacing-base) * 2); font-size: 12px; width: 100%;">Adjust Stock</button>
+            </div>
+            <div style="padding: calc(var(--spacing-base) * 2); background: #F9FAFB; border-radius: 4px;">
+                <div style="font-weight: 600; color: var(--color-neutral-900); margin-bottom: calc(var(--spacing-base) * 1);">Branch A</div>
+                <div style="font-size: 14px; color: var(--color-neutral-700);">Stock: <strong>23 units</strong></div>
+                <button class="btn btn-secondary" style="margin-top: calc(var(--spacing-base) * 2); padding: calc(var(--spacing-base) * 1) calc(var(--spacing-base) * 2); font-size: 12px; width: 100%;">Adjust Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Stock History (Last 5)</h2>
+        <table style="font-size: 13px;">
+            <thead>
+                <tr><th>Date</th><th>Type</th><th>Qty</th><th>Note</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>2024-01-15</td><td>Sale</td><td>-5</td><td>Receipt #2341</td></tr>
+                <tr><td>2024-01-14</td><td>Adjustment</td><td>+10</td><td>Count reconcile</td></tr>
+                <tr><td>2024-01-10</td><td>Sale</td><td>-2</td><td>Receipt #2298</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Stock Adjustment Screen -->
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-default">State: Default</div>
+    <div class="breadcrumb"><a href="#">Products</a> / <a href="#">SKU-1024</a> / Adjust Stock</div>
+    <h1 class="page-title mb-4">Adjust Stock</h1>
+    
+    <div class="card mb-4">
+        <h2 class="section-title">Current Stock</h2>
+        <div style="padding: calc(var(--spacing-base) * 4); background: #F9FAFB; border-radius: 6px; text-align: center;">
+            <div style="font-size: 12px; color: var(--color-neutral-600); margin-bottom: calc(var(--spacing-base) * 1);">Main Store</div>
+            <div style="font-size: 32px; font-weight: 700; color: var(--color-neutral-900);">45</div>
+            <div style="font-size: 12px; color: var(--color-neutral-600); margin-top: calc(var(--spacing-base) * 2);">units</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="form-group">
+            <label>Physical Count</label>
+            <input type="number" placeholder="Enter actual count" value="">
+        </div>
+        <div style="padding: calc(var(--spacing-base) * 3); background: #F9FAFB; border-radius: 6px; margin-bottom: calc(var(--spacing-base) * 4);">
+            <div style="font-size: 12px; color: var(--color-neutral-600); margin-bottom: calc(var(--spacing-base) * 1);">Discrepancy:</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--color-neutral-900);">— units</div>
+        </div>
+
+        <div class="form-group">
+            <label>Adjustment Reason</label>
+            <select>
+                <option>Select reason...</option>
+                <option>Physical count discrepancy</option>
+                <option>Damage/Loss</option>
+                <option>Return from customer</option>
+                <option>Stock correction</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Notes</label>
+            <textarea placeholder="Optional notes" rows="3"></textarea>
+        </div>
+
+        <div style="display: flex; gap: calc(var(--spacing-base) * 2);">
+            <button class="btn btn-primary" style="flex: 1;">Confirm Adjustment</button>
+            <button class="btn btn-secondary" style="flex: 1;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reconciliation Confirmation Screen -->
+<div class="screen mobile mt-4">
+    <div class="state-indicator state-default">State: Default</div>
+    <div class="breadcrumb"><a href="#">Products</a> / <a href="#">SKU-1024</a> / Reconciliation</div>
+    <h1 class="page-title mb-4">Review Adjustment</h1>
+    
+    <div class="card mb-4">
+        <h2 class="section-title">Summary</h2>
+        <div style="display: grid; gap: calc(var(--spacing-base) * 2); font-size: 14px;">
+            <div>
+                <span style="color: var(--color-neutral-600);">Product:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">Premium Product (SKU-1024)</span>
+            </div>
+            <div>
+                <span style="color: var(--color-neutral-600);">Previous Stock:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">45 units</span>
+            </div>
+            <div>
+                <span style="color: var(--color-neutral-600);">Physical Count:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">40 units</span>
+            </div>
+            <div style="border-top: 1px solid var(--color-neutral-200); padding-top: calc(var(--spacing-base) * 2);">
+                <span style="color: var(--color-neutral-600);">Adjustment:</span>
+                <span style="color: var(--color-error-600); font-weight: 700; font-size: 16px;">-5 units</span>
+            </div>
+            <div>
+                <span style="color: var(--color-neutral-600);">Reason:</span>
+                <span style="color: var(--color-neutral-900); font-weight: 500;">Physical count discrepancy</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <h2 class="section-title">Status</h2>
+        <div style="display: flex; align-items: center; gap: calc(var(--spacing-base) * 2); padding: calc(var(--spacing-base) * 2); background: #D1FAE5; border-radius: 6px;">
+            <span>✓</span>
+            <span style="color: #065F46; font-weight: 500;">Ready to confirm</span>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: calc(var(--spacing-base) * 2);">
+        <button class="btn btn-primary" style="flex: 1;">Confirm</button>
+        <button class="btn btn-secondary" style="flex: 1;">Edit</button>
+    </div>
+</div>
+
+</body>
+</html>

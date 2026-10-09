@@ -48,33 +48,36 @@ router = APIRouter()
 )
 def get_stock_at_location(
     location_id: int,
-    organization_id: int = Query(..., gt=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get current stock for all products at a location.
     
+    SECURITY: organization_id is derived from current_user, not client request.
+    
     Args:
         location_id: Location ID
-        organization_id: Organization ID (required query parameter)
         db: Database session
+        current_user: Authenticated user (provides organization context)
         
     Returns:
         StockResponse with list of products and quantities
         
     Raises:
+        403: User does not have access to this location
         404: Location not found
     """
-    # Verify location exists
+    # Verify location exists and belongs to user's organization
     location = db.query(Location).filter(
         Location.id == location_id,
-        Location.organization_id == organization_id,
+        Location.organization_id == current_user.organization_id,
     ).first()
     if not location:
-        raise HTTPException(status_code=404, detail="Location not found")
+        raise HTTPException(status_code=403, detail="Access denied to this location or location not found")
     
-    # Get all products for this organization
+    # Get all products for this organization (derived from authenticated user)
     products = db.query(Product).filter(
-        Product.organization_id == organization_id,
+        Product.organization_id == current_user.organization_id,
         Product.is_active == True,
     ).all()
     
@@ -82,7 +85,7 @@ def get_stock_at_location(
     for product in products:
         # Compute stock for this product at this location
         quantity = InventoryService.compute_stock_at_location(
-            organization_id=organization_id,
+            organization_id=current_user.organization_id,
             product_id=product.id,
             location_id=location_id,
             db=db,
@@ -90,7 +93,7 @@ def get_stock_at_location(
         
         # Get last movement date for this product at this location
         last_movement = db.query(InventoryMovement).filter(
-            InventoryMovement.organization_id == organization_id,
+            InventoryMovement.organization_id == current_user.organization_id,
             InventoryMovement.product_id == product.id,
             InventoryMovement.location_id == location_id,
         ).order_by(desc(InventoryMovement.created_at)).first()
@@ -115,28 +118,30 @@ def get_stock_at_location(
     tags=["Inventory"]
 )
 def list_movements(
-    organization_id: int = Query(..., gt=0),
     product_id: Optional[int] = Query(None),
     location_id: Optional[int] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get paginated list of inventory movements.
     
+    SECURITY: organization_id is derived from current_user, not client request.
+    
     Args:
-        organization_id: Organization ID (required query parameter)
         product_id: Optional filter by product
         location_id: Optional filter by location
         skip: Number of records to skip (pagination)
         limit: Number of records to return (default 20, max 100)
         db: Database session
+        current_user: Authenticated user (provides organization context)
         
     Returns:
         MovementListResponse with paginated movements
     """
     query = db.query(InventoryMovement).filter(
-        InventoryMovement.organization_id == organization_id
+        InventoryMovement.organization_id == current_user.organization_id
     )
     
     if product_id is not None:
@@ -163,29 +168,32 @@ def list_movements(
 )
 def get_movement_detail(
     movement_id: int,
-    organization_id: int = Query(..., gt=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get detailed information for a specific inventory movement.
     
+    SECURITY: organization_id is derived from current_user, not client request.
+    
     Args:
         movement_id: Movement ID
-        organization_id: Organization ID (required query parameter)
         db: Database session
+        current_user: Authenticated user (provides organization context)
         
     Returns:
         MovementDetailResponse with full movement details including product and user names
         
     Raises:
+        403: Access denied to this movement
         404: Movement not found
     """
     movement = db.query(InventoryMovement).filter(
         InventoryMovement.id == movement_id,
-        InventoryMovement.organization_id == organization_id,
+        InventoryMovement.organization_id == current_user.organization_id,
     ).first()
     
     if not movement:
-        raise HTTPException(status_code=404, detail="Movement not found")
+        raise HTTPException(status_code=403, detail="Access denied to this movement or movement not found")
     
     # Get product name
     product = db.query(Product).filter(Product.id == movement.product_id).first()
@@ -216,20 +224,25 @@ def get_movement_detail(
 )
 def create_adjustment(
     adjustment: AdjustmentCreate,
-    organization_id: int = Query(..., gt=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Record a manual inventory adjustment.
     
+    CRITICAL: recorded_by_id is derived from JWT token (current_user), not client request.
+    organization_id is derived from authenticated user's organization, not client param.
+    
     Args:
-        adjustment: Adjustment data
-        organization_id: Organization ID (required query parameter)
+        adjustment: Adjustment data (product_id, location_id, quantity, reason, note)
         db: Database session
+        current_user: Authenticated user (provides identity and organization context)
         
     Returns:
         Created InventoryMovement record
         
     Raises:
+        401: If not authenticated
+        403: If location not in user's organization
         404: Product or location not found
         422: Invalid reason
     """
@@ -241,14 +254,26 @@ def create_adjustment(
             detail=f"Invalid reason. Must be one of: {', '.join(valid_reasons)}"
         )
     
+    # SECURITY: Verify location belongs to user's organization before allowing adjustment
+    location = db.query(Location).filter(
+        Location.id == adjustment.location_id,
+        Location.organization_id == current_user.organization_id,
+    ).first()
+    if not location:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied to this location or location not found"
+        )
+    
     try:
+        # SECURITY: Use current_user.id as the authoritative recorded_by_id, not from request
         movement = InventoryService.record_movement(
-            organization_id=organization_id,
+            organization_id=current_user.organization_id,  # SECURITY: From token, not request
             product_id=adjustment.product_id,
             location_id=adjustment.location_id,
             quantity=adjustment.quantity,
             reason=adjustment.reason,
-            recorded_by_id=adjustment.recorded_by_id,
+            recorded_by_id=current_user.id,  # SECURITY: From JWT token, not request body
             reference_type="ADJUSTMENT",
             reference_id=None,
             db=db,
