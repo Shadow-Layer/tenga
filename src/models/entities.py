@@ -1,43 +1,37 @@
-"""Domain models for Tenga Inventory POS."""
+"""SQLAlchemy ORM models for Tenga Inventory POS system."""
 from datetime import datetime
 from enum import Enum
+from typing import Optional, List
 from sqlalchemy import (
-    Column, Integer, String, DateTime, ForeignKey, Boolean, 
-    Numeric, Text, Index, CheckConstraint, UniqueConstraint, event
+    Column, Integer, String, Text, DateTime, Boolean, Numeric, 
+    ForeignKey, UniqueConstraint, Index, event, CheckConstraint
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declared_attr
 from src.database.config import Base
 
 
 class BaseEntity(Base):
-    """Abstract base entity with common columns."""
+    """Base model for all entities with common timestamps."""
     __abstract__ = True
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
-    @declared_attr
-    def organization_id(cls):
-        """Every entity must belong to an organization (tenant isolation)."""
-        return Column(Integer, ForeignKey("organization.id"), nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class Organization(Base):
-    """Organization (tenant) aggregate root.
-    
-    Single organization per deployment. All records are scoped to organization_id.
-    """
+class Organization(BaseEntity):
+    """Organization entity - root tenant for multi-tenancy."""
     __tablename__ = "organization"
+    __table_args__ = (
+        Index('ix_organization_code', 'code'),
+        Index('ix_organization_is_active', 'is_active'),
+        Index('ix_organization_name', 'name'),
+    )
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(255), nullable=False, unique=True, index=True)
-    code = Column(String(50), nullable=False, unique=True, index=True)
-    description = Column(Text)
-    is_active = Column(Boolean, default=True, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False, unique=True)
+    code = Column(String(50), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
     
     # Relationships
     users = relationship("User", back_populates="organization", cascade="all, delete-orphan")
@@ -45,234 +39,224 @@ class Organization(Base):
     products = relationship("Product", back_populates="organization", cascade="all, delete-orphan")
     tills = relationship("Till", back_populates="organization", cascade="all, delete-orphan")
     subscriptions = relationship("Subscription", back_populates="organization", cascade="all, delete-orphan")
+    stock = relationship("Stock", back_populates="organization", cascade="all, delete-orphan")
     inventory_movements = relationship("InventoryMovement", back_populates="organization", cascade="all, delete-orphan")
     sales = relationship("Sale", back_populates="organization", cascade="all, delete-orphan")
     till_sessions = relationship("TillSession", back_populates="organization", cascade="all, delete-orphan")
 
 
 class User(BaseEntity):
-    """User entity with role context.
-    
-    Users are scoped to organization. Roles determine permissions.
-    """
+    """User entity - organization member with role-based access."""
     __tablename__ = "user"
     __table_args__ = (
-        Index("idx_org_email", "organization_id", "email", unique=True),
+        UniqueConstraint('email', 'organization_id', name='ix_org_email'),
+        Index('ix_user_email', 'email'),
+        Index('ix_user_is_active', 'is_active'),
+        Index('ix_user_organization_id', 'organization_id'),
     )
     
-    email = Column(String(255), nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    email = Column(String(255), nullable=False)
     username = Column(String(100), nullable=False)
-    full_name = Column(String(255))
+    full_name = Column(String(255), nullable=True)
     password_hash = Column(String(255), nullable=False)
-    role = Column(String(50), nullable=False, default="operator")  # operator, manager, admin
-    is_active = Column(Boolean, default=True, nullable=False, index=True)
-    last_login = Column(DateTime)
+    role = Column(String(50), nullable=False)  # operator, manager, admin
+    is_active = Column(Boolean, nullable=False, default=True)
+    last_login = Column(DateTime, nullable=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="users")
-    inventory_movements = relationship("InventoryMovement", back_populates="recorded_by", foreign_keys="InventoryMovement.recorded_by_id")
-    till_sessions = relationship("TillSession", back_populates="operator")
-    sales = relationship("Sale", back_populates="cashier")
+    inventory_movements = relationship("InventoryMovement", foreign_keys="InventoryMovement.recorded_by_id", back_populates="recorded_by")
+    sales = relationship("Sale", foreign_keys="Sale.cashier_id", back_populates="cashier")
+    till_sessions = relationship("TillSession", foreign_keys="TillSession.operator_id", back_populates="operator")
 
 
 class Location(BaseEntity):
-    """Inventory location within organization.
-    
-    Represents a physical or logical inventory location (warehouse, store, branch).
-    """
+    """Location entity - physical store location within organization."""
     __tablename__ = "location"
     __table_args__ = (
-        Index("idx_org_code", "organization_id", "code", unique=True),
+        UniqueConstraint('code', 'organization_id', name='ix_org_code'),
+        Index('ix_location_is_active', 'is_active'),
+        Index('ix_location_organization_id', 'organization_id'),
     )
     
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
     code = Column(String(50), nullable=False)
     name = Column(String(255), nullable=False)
-    description = Column(Text)
-    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="locations")
-    tills = relationship("Till", back_populates="location")
-    inventory_movements = relationship("InventoryMovement", back_populates="location")
+    tills = relationship("Till", back_populates="location", cascade="all, delete-orphan")
     stock = relationship("Stock", back_populates="location", cascade="all, delete-orphan")
+    inventory_movements = relationship("InventoryMovement", foreign_keys="InventoryMovement.location_id", back_populates="location")
 
 
 class Product(BaseEntity):
-    """Saleable item.
-    
-    Product definitions are organization-wide. Stock is tracked per location.
-    """
+    """Product entity - inventory item within organization."""
     __tablename__ = "product"
     __table_args__ = (
-        Index("idx_org_sku", "organization_id", "sku", unique=True),
+        UniqueConstraint('sku', 'organization_id', name='ix_org_sku'),
+        Index('ix_product_is_active', 'is_active'),
+        Index('ix_product_organization_id', 'organization_id'),
     )
     
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
     sku = Column(String(100), nullable=False)
     name = Column(String(255), nullable=False)
-    description = Column(Text)
-    category = Column(String(100))
-    price = Column(Numeric(12, 2), nullable=False)
-    cost = Column(Numeric(12, 2))
-    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    category = Column(String(100), nullable=True)
+    price = Column(Numeric(precision=12, scale=2), nullable=False)
+    cost = Column(Numeric(precision=12, scale=2), nullable=True)
+    barcode = Column(String(100), nullable=True)  # Added for Phase B: barcode support
+    is_active = Column(Boolean, nullable=False, default=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="products")
-    inventory_movements = relationship("InventoryMovement", back_populates="product")
-    stock = relationship("Stock", back_populates="product")
+    stock = relationship("Stock", back_populates="product", cascade="all, delete-orphan")
+    inventory_movements = relationship("InventoryMovement", foreign_keys="InventoryMovement.product_id", back_populates="product")
     sale_items = relationship("SaleItem", back_populates="product")
 
 
 class Till(BaseEntity):
-    """POS operational entity (not device-bound).
-    
-    Represents a logical till/register. Can be used on different devices.
-    """
+    """Till entity - point of sale terminal."""
     __tablename__ = "till"
     __table_args__ = (
-        Index("idx_org_code_till", "organization_id", "code", unique=True),
+        UniqueConstraint('code', 'organization_id', name='ix_org_code_till'),
+        Index('ix_till_is_active', 'is_active'),
+        Index('ix_till_location_id', 'location_id'),
+        Index('ix_till_organization_id', 'organization_id'),
     )
     
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    location_id = Column(Integer, ForeignKey('location.id'), nullable=False)
     code = Column(String(50), nullable=False)
     name = Column(String(255), nullable=False)
-    location_id = Column(Integer, ForeignKey("location.id"), nullable=False, index=True)
-    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    is_active = Column(Boolean, nullable=False, default=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="tills")
     location = relationship("Location", back_populates="tills")
+    sales = relationship("Sale", back_populates="till", cascade="all, delete-orphan")
     till_sessions = relationship("TillSession", back_populates="till", cascade="all, delete-orphan")
-    sales = relationship("Sale", back_populates="till")
 
 
 class Subscription(BaseEntity):
-    """Billing and subscription state.
-    
-    Skeleton for state machine (ACTIVE/GRACE/LIMITED). Transitions in T002.
-    """
+    """Subscription entity - SaaS subscription for organization."""
     __tablename__ = "subscription"
+    __table_args__ = (
+        Index('ix_subscription_organization_id', 'organization_id'),
+    )
     
-    plan = Column(String(50), nullable=False)  # e.g., BASIC, PROFESSIONAL
-    term = Column(String(20), nullable=False)  # MONTHLY, ANNUAL
-    state = Column(String(50), nullable=False, default="ACTIVE")  # ACTIVE, GRACE, LIMITED, EXPIRED
-    start_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    plan = Column(String(50), nullable=False)  # e.g., "starter", "professional"
+    term = Column(String(20), nullable=False)  # e.g., "monthly", "annual"
+    state = Column(String(50), nullable=False)  # e.g., "active", "expired", "cancelled"
+    start_date = Column(DateTime, nullable=False)
     expiry_date = Column(DateTime, nullable=False)
-    grace_end_date = Column(DateTime)
-    auto_renew = Column(Boolean, default=True)
+    grace_end_date = Column(DateTime, nullable=True)
+    auto_renew = Column(Boolean, nullable=False, default=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="subscriptions")
 
 
-class Stock(Base):
-    """Stock quantity at location (derived view, not directly updatable).
-    
-    Computed from InventoryMovement ledger: SUM(IN) - SUM(OUT).
-    This table is a computed view; do NOT allow direct updates.
-    """
+class Stock(BaseEntity):
+    """Stock entity - derived view of current inventory at location."""
     __tablename__ = "stock"
     __table_args__ = (
-        Index("idx_location_product", "location_id", "product_id", unique=True),
+        UniqueConstraint('location_id', 'product_id', name='ix_location_product'),
+        Index('ix_stock_organization_id', 'organization_id'),
     )
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    organization_id = Column(Integer, ForeignKey("organization.id"), nullable=False, index=True)
-    location_id = Column(Integer, ForeignKey("location.id"), nullable=False, index=True)
-    product_id = Column(Integer, ForeignKey("product.id"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    location_id = Column(Integer, ForeignKey('location.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
     quantity = Column(Integer, nullable=False, default=0)
-    last_movement_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_movement_at = Column(DateTime, nullable=True)
     
     # Relationships
-    organization = relationship("Organization")
+    organization = relationship("Organization", back_populates="stock")
     location = relationship("Location", back_populates="stock")
     product = relationship("Product", back_populates="stock")
 
 
-class InventoryMovement(Base):
-    """Immutable audit trail of inventory changes.
-    
-    CRITICAL: This table is append-only. No UPDATE or DELETE allowed after creation.
-    Every movement is the authority on inventory state (not Stock table).
-    Movements include: IN (purchase, adjustment), OUT (sale, adjustment).
-    """
+class InventoryMovement(BaseEntity):
+    """InventoryMovement entity - append-only audit trail of stock changes."""
     __tablename__ = "inventory_movement"
     __table_args__ = (
-        Index("idx_org_created", "organization_id", "created_at"),
-        Index("idx_location_created", "location_id", "created_at"),
-        Index("idx_product_created", "product_id", "created_at"),
+        Index('ix_inventory_movement_created_at', 'created_at'),
+        Index('ix_inventory_movement_location_created', 'location_id', 'created_at'),
+        Index('ix_inventory_movement_organization_created', 'organization_id', 'created_at'),
+        Index('ix_inventory_movement_product_created', 'product_id', 'created_at'),
     )
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    organization_id = Column(Integer, ForeignKey("organization.id"), nullable=False, index=True)
-    location_id = Column(Integer, ForeignKey("location.id"), nullable=False, index=True)
-    product_id = Column(Integer, ForeignKey("product.id"), nullable=False, index=True)
-    
-    movement_type = Column(String(20), nullable=False)  # IN, OUT
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    location_id = Column(Integer, ForeignKey('location.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    movement_type = Column(String(20), nullable=False)  # SALE, ADJUSTMENT, TRANSFER, COUNT
     quantity = Column(Integer, nullable=False)
-    reason = Column(String(100), nullable=False)  # PURCHASE, SALE, ADJUSTMENT, RETURN, etc.
-    reference_id = Column(Integer)  # References sale_id, purchase_order_id, etc.
-    reference_type = Column(String(50))  # SALE, PO, ADJUSTMENT, etc.
-    
-    recorded_by_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    reason = Column(String(100), nullable=False)  # Canonical reason code: PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE, ADJUSTMENT
+    reference_id = Column(Integer, nullable=True)  # e.g., sale_id, till_session_id
+    reference_type = Column(String(50), nullable=True)  # e.g., "sale", "physical_count"
+    recorded_by_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     
     # Relationships
     organization = relationship("Organization", back_populates="inventory_movements")
-    location = relationship("Location", back_populates="inventory_movements")
-    product = relationship("Product", back_populates="inventory_movements")
-    recorded_by = relationship("User", back_populates="inventory_movements", foreign_keys=[recorded_by_id])
-
-
-# Trigger to prevent UPDATE/DELETE on InventoryMovement
-@event.listens_for(InventoryMovement, "before_update")
-def prevent_inventory_movement_update(mapper, connection, target):
-    raise Exception("InventoryMovement records are immutable and cannot be updated")
-
-
-@event.listens_for(InventoryMovement, "before_delete")
-def prevent_inventory_movement_delete(mapper, connection, target):
-    raise Exception("InventoryMovement records are immutable and cannot be deleted")
+    location = relationship("Location", foreign_keys="InventoryMovement.location_id", back_populates="inventory_movements")
+    product = relationship("Product", foreign_keys="InventoryMovement.product_id", back_populates="inventory_movements")
+    recorded_by = relationship("User", foreign_keys="InventoryMovement.recorded_by_id", back_populates="inventory_movements")
 
 
 class Sale(BaseEntity):
-    """Transaction record.
-    
-    Represents a completed sale. Details stored in SaleItem.
-    """
+    """Sale entity - transaction record."""
     __tablename__ = "sale"
     __table_args__ = (
-        Index("idx_till_created", "till_id", "created_at"),
-        Index("idx_org_created_sale", "organization_id", "created_at"),
+        Index('ix_sale_created_till', 'till_id', 'created_at'),
+        Index('ix_sale_organization_created', 'organization_id', 'created_at'),
     )
     
-    till_id = Column(Integer, ForeignKey("till.id"), nullable=False, index=True)
-    cashier_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    
-    total_amount = Column(Numeric(12, 2), nullable=False)
-    discount_amount = Column(Numeric(12, 2), default=0)
-    tax_amount = Column(Numeric(12, 2), default=0)
-    payment_method = Column(String(50), nullable=False)  # CASH, CARD, MOBILE, etc.
-    status = Column(String(20), nullable=False, default="COMPLETED")  # PENDING, COMPLETED, REFUNDED
-    notes = Column(Text)
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    till_id = Column(Integer, ForeignKey('till.id'), nullable=False)
+    cashier_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    total_amount = Column(Numeric(precision=12, scale=2), nullable=False)
+    discount_amount = Column(Numeric(precision=12, scale=2), nullable=False, default=0)
+    tax_amount = Column(Numeric(precision=12, scale=2), nullable=False, default=0)
+    payment_method = Column(String(50), nullable=False)  # cash, card, mobile_money
+    status = Column(String(20), nullable=False, default="completed")  # completed, pending, cancelled
+    notes = Column(Text, nullable=True)
+    till_session_id = Column(Integer, nullable=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="sales")
     till = relationship("Till", back_populates="sales")
-    cashier = relationship("User", back_populates="sales")
+    cashier = relationship("User", foreign_keys="Sale.cashier_id", back_populates="sales")
     sale_items = relationship("SaleItem", back_populates="sale", cascade="all, delete-orphan")
 
 
-class SaleItem(Base):
-    """Item line in a sale."""
+class SaleItem(BaseEntity):
+    """SaleItem entity - line item in a sale."""
     __tablename__ = "sale_item"
+    __table_args__ = (
+        Index('ix_sale_item_sale_id', 'sale_id'),
+    )
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    sale_id = Column(Integer, ForeignKey("sale.id"), nullable=False, index=True)
-    product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
-    
+    id = Column(Integer, primary_key=True)
+    sale_id = Column(Integer, ForeignKey('sale.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
     quantity = Column(Integer, nullable=False)
-    unit_price = Column(Numeric(12, 2), nullable=False)
-    discount_per_item = Column(Numeric(12, 2), default=0)
-    total_price = Column(Numeric(12, 2), nullable=False)
+    unit_price = Column(Numeric(precision=12, scale=2), nullable=False)
+    discount_per_item = Column(Numeric(precision=12, scale=2), nullable=False, default=0)
+    total_price = Column(Numeric(precision=12, scale=2), nullable=False)
     
     # Relationships
     sale = relationship("Sale", back_populates="sale_items")
@@ -280,31 +264,27 @@ class SaleItem(Base):
 
 
 class TillSession(BaseEntity):
-    """Operational context for a till.
-    
-    Represents a till being opened and operated by an operator.
-    Lifecycle operations (open, close, reconcile) in T006.
-    """
+    """TillSession entity - till opening/closing session."""
     __tablename__ = "till_session"
     __table_args__ = (
-        Index("idx_till_created_session", "till_id", "created_at"),
-        Index("idx_operator_created", "operator_id", "created_at"),
+        Index('ix_till_session_created_session', 'till_id', 'created_at'),
+        Index('ix_till_session_operator_created', 'operator_id', 'created_at'),
+        Index('ix_till_session_organization_id', 'organization_id'),
     )
     
-    till_id = Column(Integer, ForeignKey("till.id"), nullable=False, index=True)
-    operator_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    
-    session_number = Column(String(100), nullable=False)  # Unique session identifier
-    opening_balance = Column(Numeric(12, 2), nullable=False, default=0)
-    closing_balance = Column(Numeric(12, 2))
-    
-    status = Column(String(20), nullable=False, default="OPEN")  # OPEN, CLOSED, SUSPENDED
-    opened_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    closed_at = Column(DateTime)
-    
-    notes = Column(Text)
+    id = Column(Integer, primary_key=True)
+    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=False)
+    till_id = Column(Integer, ForeignKey('till.id'), nullable=False)
+    operator_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    session_number = Column(String(100), nullable=False)
+    opening_balance = Column(Numeric(precision=12, scale=2), nullable=False)
+    closing_balance = Column(Numeric(precision=12, scale=2), nullable=True)
+    status = Column(String(20), nullable=False, default="open")  # open, closed
+    opened_at = Column(DateTime, nullable=False)
+    closed_at = Column(DateTime, nullable=True)
+    notes = Column(Text, nullable=True)
     
     # Relationships
     organization = relationship("Organization", back_populates="till_sessions")
     till = relationship("Till", back_populates="till_sessions")
-    operator = relationship("User", back_populates="till_sessions")
+    operator = relationship("User", foreign_keys="TillSession.operator_id", back_populates="till_sessions")

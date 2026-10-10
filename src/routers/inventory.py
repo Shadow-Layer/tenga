@@ -27,6 +27,7 @@ from src.models.entities import (
     User,
 )
 from src.services.inventory_service import InventoryService
+from src.services.adjustment_reasons import validate_and_normalize_reason
 from src.schemas.inventory import (
     StockResponse,
     StockItem,
@@ -231,27 +232,31 @@ def create_adjustment(
     
     CRITICAL: recorded_by_id is derived from JWT token (current_user), not client request.
     organization_id is derived from authenticated user's organization, not client param.
+    Reason may be provided as user-friendly label or canonical code; it is normalized to canonical.
     
     Args:
         adjustment: Adjustment data (product_id, location_id, quantity, reason, note)
+                   - reason: Can be a user-friendly label (e.g., "Physical Count") or 
+                            canonical code (e.g., "PHYSICAL_COUNT_DISCREPANCY")
         db: Database session
         current_user: Authenticated user (provides identity and organization context)
         
     Returns:
-        Created InventoryMovement record
+        Created InventoryMovement record with canonical reason code
         
     Raises:
         401: If not authenticated
         403: If location not in user's organization
         404: Product or location not found
-        422: Invalid reason
+        422: Invalid reason (unknown label or code)
     """
-    # Validate reason
-    valid_reasons = ["PHYSICAL_COUNT_DISCREPANCY", "DAMAGE", "SHRINKAGE", "ADJUSTMENT"]
-    if adjustment.reason not in valid_reasons:
+    # Validate and normalize reason: accepts both labels and canonical codes
+    try:
+        canonical_reason = validate_and_normalize_reason(adjustment.reason)
+    except ValueError as e:
         raise HTTPException(
             status_code=422,
-            detail=f"Invalid reason. Must be one of: {', '.join(valid_reasons)}"
+            detail=f"Invalid adjustment reason: {str(e)}"
         )
     
     # SECURITY: Verify location belongs to user's organization before allowing adjustment
@@ -267,12 +272,13 @@ def create_adjustment(
     
     try:
         # SECURITY: Use current_user.id as the authoritative recorded_by_id, not from request
+        # Use canonical_reason (normalized from user input) to persist consistent audit trail
         movement = InventoryService.record_movement(
             organization_id=current_user.organization_id,  # SECURITY: From token, not request
             product_id=adjustment.product_id,
             location_id=adjustment.location_id,
             quantity=adjustment.quantity,
-            reason=adjustment.reason,
+            reason=canonical_reason,  # Use normalized canonical code, not raw input
             recorded_by_id=current_user.id,  # SECURITY: From JWT token, not request body
             reference_type="ADJUSTMENT",
             reference_id=None,
