@@ -206,3 +206,98 @@ The implementation phase uses IDs **U006-U008** which collide with the original 
 - Monitor implementation of U006-U008 in pilot deployments.
 - Consider formalizing cache TTL policy for U008 (Offline Optimism).
 
+
+---
+
+## D010a — Offline Inventory Mutation and Reconciliation Policy
+
+**Status:** ✅ APPROVED (October 10, 2026)
+
+**Decision:** Tenga shall support durable offline recording for all core inventory operations (sales, stock receipts, transfers, physical counts, manual adjustments, returns) with operation-specific reconciliation rules.
+
+**Confidence:** High (architecture partially implemented; U006 foundation verified)
+
+**Key Principles:**
+1. Durable first - Offline operations stored locally before UI confirmation
+2. No silent loss - Every movement preserves identity and audit trail
+3. Idempotent sync - Retries do not double-count
+4. Explicit authority - Backend ledger is authoritative; device balance is provisional
+5. Conflict-aware reconciliation - Each operation type has specific rules
+6. Visible uncertainty - UI clearly distinguishes recorded/pending/synced/reconciliation-required
+7. No invented certainty - Device balance provisional while offline
+
+**Evidence:**
+- U006 (Permit & Reconcile Afterward) already implemented
+- InventoryMovement append-only ledger confirmed
+- SyncService with idempotency support verified
+- Multi-till conflict tests passing
+- Small-shop operating realities validated
+
+**Consequences:**
+- Backend: Add device_id, device_local_id, sync_status to InventoryMovement
+- Backend: Implement deduplication for idempotent sync
+- Backend: Add reconciliation_log for discrepancy tracking
+- Frontend: New UI states (Recorded, Syncing, Synchronized, Reconciliation Pending, Failed)
+- API: POST /sync/batch returns status per movement
+
+**Reversibility:** Moderate (architecture partially implemented; reconciliation rules can be adjusted)
+
+**Test Coverage:** 5 scenarios (multi-till oversell, device restart, concurrent receipt+sale, physical count with intervening movements, duplicate sync idempotency)
+
+---
+
+## D014 — Fiscal Integration and ZIMRA Compliance Policy
+
+**Status:** ✅ APPROVED (October 10, 2026)
+
+**Decision:** Tenga POS must support ZIMRA-compliant fiscalization for all sales in Zimbabwe deployments. TengaVFD handles fiscal independently; TengaPOS communicates through defined interface. Sale and fiscal status are separate.
+
+**Confidence:** High (evidence-based on ZIMRA official guidance; architecture clear)
+
+**Authoritative Evidence:**
+- ZIMRA official guidance (zimra.co.zw): Fiscalization mandatory for all taxpayers including below VAT threshold
+- ZIMRA Fiscal Device Gateway API: Both online and offline modes supported
+- Virtual fiscal devices recognized
+- Direct POS-to-FDMS integration supported
+- Approved offline procedures exist with defined rules
+
+**Architecture:**
+```
+TengaPOS (sale recording, inventory, receipt printing)
+    ↓ (defined interface)
+TengaVFD (ZIMRA communication, fiscal numbering, offline queueing)
+    ↓ (ZIMRA FDMS API)
+ZIMRA FDMS (fiscal verification, reporting)
+```
+
+**Procedures:**
+- Online: Real-time fiscal submission
+- Offline (if approved): Queue locally, submit on reconnection
+- Idempotency: Duplicate submissions return same fiscal number
+- Retry: Exponential backoff (5s, 15s, 60s, 5m, 15m, hourly)
+- Error handling: Transient (retry) vs. permanent (manual intervention)
+
+**Data Model:**
+- Sale.status (COMPLETED, PENDING, CANCELLED) = Inventory status
+- Sale.fiscal_status (PENDING, SUBMITTED, ACKNOWLEDGED, FAILED) = Fiscal status
+- Independent fields (sale complete ≠ fiscal acknowledgment required)
+
+**Consequences:**
+- Backend: Add fiscal_status, fiscal_receipt_number, fiscal_error, fiscal_retry_count to Sale
+- Backend: New fiscalize endpoint and retry queue
+- Backend: Idempotent submission via idempotency_key
+- Frontend: Separate receipt display (preliminary vs. final with fiscal number)
+- Integration: Depends on TengaVFD (external system)
+
+**Risk:** Medium (regulatory compliance required; external dependency)
+
+**Reversibility:** Expensive (core to sale completion)
+
+**Parallel Path:** Approve architecture now; conduct ZIMRA verification in parallel with TengaVFD integration
+
+**Outstanding Verification:** Device approval process, offline approval status, numbering scheme, maximum delay, submission order, recovery procedures, annual reconciliation, audit trail requirements
+
+**Test Coverage:** 7 scenarios (online success, offline queue, ZIMRA timeout+retry, idempotent duplicate, invalid data, uncertain outcome, prolonged offline+restart)
+
+---
+
