@@ -1,0 +1,247 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/tea/Documents/apps/tenga-inventory
+plugins: cov-4.1.0, anyio-4.13.0
+collecting ... collected 39 items
+
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available PASSED [  2%]
+tests/test_offline_capability.py::TestLocalStorage::test_storage_initialization PASSED [  5%]
+tests/test_offline_capability.py::TestLocalStorage::test_set_get_session_state PASSED [  7%]
+tests/test_offline_capability.py::TestLocalStorage::test_session_state_with_dict PASSED [ 10%]
+tests/test_offline_capability.py::TestLocalStorage::test_save_and_get_org_context PASSED [ 12%]
+tests/test_offline_capability.py::TestLocalStorage::test_cache_products PASSED [ 15%]
+tests/test_offline_capability.py::TestLocalStorage::test_cache_and_get_stock PASSED [ 17%]
+tests/test_offline_capability.py::TestLocalStorage::test_create_and_get_pending_sale PASSED [ 20%]
+tests/test_offline_capability.py::TestLocalStorage::test_mark_sale_synced PASSED [ 23%]
+tests/test_offline_capability.py::TestLocalStorage::test_sync_queue PASSED [ 25%]
+tests/test_offline_capability.py::TestLocalStorage::test_mark_event_synced PASSED [ 28%]
+tests/test_offline_capability.py::TestLocalStorage::test_connectivity_state PASSED [ 30%]
+tests/test_offline_capability.py::TestConnectivityManager::test_connectivity_initialization PASSED [ 33%]
+tests/test_offline_capability.py::TestConnectivityManager::test_connectivity_callbacks PASSED [ 35%]
+tests/test_offline_capability.py::TestConnectivityManager::test_is_online PASSED [ 38%]
+tests/test_offline_capability.py::TestSyncManager::test_prepare_sync_batch PASSED [ 41%]
+tests/test_offline_capability.py::TestSyncManager::test_sync_with_success PASSED [ 43%]
+tests/test_offline_capability.py::TestSyncManager::test_sync_with_error PASSED [ 46%]
+tests/test_offline_capability.py::TestSyncManager::test_get_sync_status PASSED [ 48%]
+tests/test_offline_capability.py::TestOfflineManager::test_offline_manager_initialization PASSED [ 51%]
+tests/test_offline_capability.py::TestOfflineManager::test_initialize_context PASSED [ 53%]
+tests/test_offline_capability.py::TestOfflineManager::test_create_offline_sale PASSED [ 56%]
+tests/test_offline_capability.py::TestOfflineManager::test_create_sale_validation PASSED [ 58%]
+tests/test_offline_capability.py::TestOfflineManager::test_get_pending_sync_count PASSED [ 61%]
+tests/test_offline_capability.py::TestOfflineManager::test_sync_with_mock_api PASSED [ 64%]
+tests/test_offline_capability.py::TestOfflineManager::test_get_status PASSED [ 66%]
+tests/test_offline_capability.py::TestOfflineManager::test_cached_products_and_stock PASSED [ 69%]
+tests/test_offline_capability.py::TestOfflineManager::test_event_callbacks PASSED [ 71%]
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow PASSED [ 74%]
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_persistence_across_restarts PASSED [ 76%]
+tests/test_offline_capability.py::TestOfflineIntegration::test_connectivity_and_auto_sync PASSED [ 79%]
+tests/test_migration_system.py::TestAlembicMigrations::test_alembic_config_exists PASSED [ 82%]
+tests/test_migration_system.py::TestAlembicMigrations::test_migrations_directory_exists PASSED [ 84%]
+tests/test_migration_system.py::TestAlembicMigrations::test_migration_files_exist PASSED [ 87%]
+tests/test_migration_system.py::TestAlembicMigrations::test_alembic_env_imports_models PASSED [ 89%]
+tests/test_migration_system.py::TestAlembicMigrations::test_migration_upgrade_creates_schema PASSED [ 92%]
+tests/test_migration_system.py::TestAlembicMigrations::test_migration_downgrade_drops_schema PASSED [ 94%]
+tests/test_migration_system.py::TestAlembicMigrations::test_migration_tracks_version FAILED [ 97%]
+tests/test_migration_system.py::TestMigrationIdempotency::test_upgrade_idempotent PASSED [100%]
+
+=================================== FAILURES ===================================
+_____________ TestAlembicMigrations.test_migration_tracks_version ______________
+tests/test_migration_system.py:161: in test_migration_tracks_version
+    assert version == "b143c7e5867b", f"Unexpected version: {version}"
+E   AssertionError: Unexpected version: add_barcode_v001
+E   assert 'add_barcode_v001' == 'b143c7e5867b'
+E     - b143c7e5867b
+E     + add_barcode_v001
+----------------------------- Captured stderr call -----------------------------
+INFO:alembic.runtime.migration:Context impl SQLiteImpl.
+INFO:alembic.runtime.migration:Will assume non-transactional DDL.
+INFO:alembic.runtime.migration:Running upgrade  -> b143c7e5867b, Initial schema creation - all entities
+DEBUG:alembic.runtime.migration:new branch insert b143c7e5867b
+INFO:alembic.runtime.migration:Running upgrade b143c7e5867b -> add_barcode_v001, Add barcode column to product
+DEBUG:alembic.runtime.migration:update b143c7e5867b to add_barcode_v001
+------------------------------ Captured log call -------------------------------
+INFO     alembic.runtime.migration:migration.py:205 Context impl SQLiteImpl.
+INFO     alembic.runtime.migration:migration.py:208 Will assume non-transactional DDL.
+INFO     alembic.runtime.migration:migration.py:611 Running upgrade  -> b143c7e5867b, Initial schema creation - all entities
+DEBUG    alembic.runtime.migration:migration.py:773 new branch insert b143c7e5867b
+INFO     alembic.runtime.migration:migration.py:611 Running upgrade b143c7e5867b -> add_barcode_v001, Add barcode column to product
+DEBUG    alembic.runtime.migration:migration.py:808 update b143c7e5867b to add_barcode_v001
+=============================== warnings summary ===============================
+../../../.local/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /home/tea/.local/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+src/schemas/organization.py:14
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/organization.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrganizationResponse(BaseModel):
+
+src/schemas/user.py:16
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/user.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+src/schemas/user.py:51
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/user.py:51: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CurrentUserResponse(BaseModel):
+
+src/schemas/product.py:31
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/product.py:31: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductResponse(BaseModel):
+
+src/schemas/location.py:15
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/location.py:15: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LocationResponse(BaseModel):
+
+src/schemas/sale.py:19
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:19: PydanticDeprecatedSince20: `min_items` is deprecated and will be removed, use `min_length` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    items: List[SaleLineItem] = Field(..., min_items=1, description="Sale line items")
+
+src/schemas/sale.py:24
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SaleItemResponse(BaseModel):
+
+src/schemas/sale.py:37
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:37: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SaleResponse(BaseModel):
+
+src/schemas/sale.py:70
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:70: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SaleCommitResponse(BaseModel):
+
+src/schemas/inventory.py:22
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/inventory.py:22: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class InventoryMovement(BaseModel):
+
+src/schemas/inventory.py:44
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/inventory.py:44: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class MovementDetailResponse(BaseModel):
+
+src/schemas/subscription.py:17
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/subscription.py:17: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SubscriptionResponse(BaseModel):
+
+src/schemas/till.py:7
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:7: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillCreate(BaseModel):
+
+src/schemas/till.py:23
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:23: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillResponse(BaseModel):
+
+src/schemas/till.py:50
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:50: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionOpen(BaseModel):
+
+src/schemas/till.py:66
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:66: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionClose(BaseModel):
+
+src/schemas/till.py:84
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:84: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillStatusResponse(BaseModel):
+
+src/schemas/till.py:110
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:110: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionOpenResponse(BaseModel):
+
+src/schemas/till.py:135
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:135: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionCloseResponse(BaseModel):
+
+src/schemas/till.py:160
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:160: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PaginatedTillResponse(BaseModel):
+
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available
+  /home/tea/.local/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:4296: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore[call-arg, no-any-return, no-untyped-call]  # noqa: E501
+
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/routers/auth.py:63: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    user=UserResponse.from_orm(user),
+
+tests/test_offline_capability.py::TestLocalStorage::test_set_get_session_state
+tests/test_offline_capability.py::TestLocalStorage::test_session_state_with_dict
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:188: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow().isoformat())
+
+tests/test_offline_capability.py: 13 warnings
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:221: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow().isoformat(), expires_at))
+
+tests/test_offline_capability.py::TestLocalStorage::test_cache_products
+tests/test_offline_capability.py::TestOfflineManager::test_cached_products_and_stock
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:243: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow().isoformat()
+
+tests/test_offline_capability.py::TestLocalStorage::test_cache_and_get_stock
+tests/test_offline_capability.py::TestOfflineManager::test_cached_products_and_stock
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:276: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow().isoformat()
+
+tests/test_offline_capability.py: 13 warnings
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:310: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow().isoformat()
+
+tests/test_offline_capability.py: 17 warnings
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:393: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    """, (datetime.utcnow().isoformat(), server_sale_id, sale_id))
+
+tests/test_offline_capability.py: 10 warnings
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:421: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow().isoformat()))
+
+tests/test_offline_capability.py::TestLocalStorage::test_mark_event_synced
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:456: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    """, (datetime.utcnow().isoformat(), batch_id, event_id))
+
+tests/test_offline_capability.py::TestLocalStorage::test_connectivity_state
+tests/test_offline_capability.py::TestLocalStorage::test_connectivity_state
+tests/test_offline_capability.py::TestOfflineIntegration::test_connectivity_and_auto_sync
+  /home/tea/Documents/apps/tenga-inventory/src/client/storage.py:510: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow().isoformat()
+
+tests/test_offline_capability.py: 17 warnings
+  /home/tea/Documents/apps/tenga-inventory/src/client/connectivity.py:37: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.last_check = datetime.utcnow()
+
+tests/test_offline_capability.py::TestConnectivityManager::test_connectivity_callbacks
+tests/test_offline_capability.py::TestConnectivityManager::test_is_online
+tests/test_offline_capability.py::TestOfflineIntegration::test_connectivity_and_auto_sync
+tests/test_migration_system.py::TestAlembicMigrations::test_migration_upgrade_creates_schema
+  /home/tea/Documents/apps/tenga-inventory/src/client/connectivity.py:99: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.last_check = datetime.utcnow()
+
+tests/test_offline_capability.py::TestSyncManager::test_sync_with_success
+tests/test_offline_capability.py::TestOfflineManager::test_sync_with_mock_api
+tests/test_offline_capability.py::TestOfflineManager::test_sync_with_mock_api
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow
+  /home/tea/Documents/apps/tenga-inventory/src/client/sync_manager.py:157: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    last_sync_at=datetime.utcnow().isoformat(),
+
+tests/test_offline_capability.py::TestSyncManager::test_sync_with_success
+tests/test_offline_capability.py::TestOfflineManager::test_sync_with_mock_api
+tests/test_offline_capability.py::TestOfflineManager::test_sync_with_mock_api
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow
+  /home/tea/Documents/apps/tenga-inventory/src/client/sync_manager.py:163: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.last_sync_at = datetime.utcnow()
+
+tests/test_offline_capability.py::TestOfflineManager::test_create_offline_sale
+tests/test_offline_capability.py::TestOfflineManager::test_get_pending_sync_count
+tests/test_offline_capability.py::TestOfflineManager::test_sync_with_mock_api
+tests/test_offline_capability.py::TestOfflineManager::test_event_callbacks
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_sale_flow
+tests/test_offline_capability.py::TestOfflineIntegration::test_offline_persistence_across_restarts
+  /home/tea/Documents/apps/tenga-inventory/src/client/offline_manager.py:220: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_migration_system.py::TestAlembicMigrations::test_migration_tracks_version
+================== 1 failed, 38 passed, 127 warnings in 3.81s ==================

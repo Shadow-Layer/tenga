@@ -248,14 +248,14 @@ def create_adjustment(
         401: If not authenticated
         403: If location not in user's organization
         404: Product or location not found
-        422: Invalid reason (unknown label or code)
+        400: Invalid reason (unknown label or code)
     """
     # Validate and normalize reason: accepts both labels and canonical codes
     try:
         canonical_reason = validate_and_normalize_reason(adjustment.reason)
     except ValueError as e:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail=f"Invalid adjustment reason: {str(e)}"
         )
     

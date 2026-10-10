@@ -220,6 +220,31 @@ export const inventoryAPI = {
     apiClient.get(`/api/v1/stock/movements`, {
       params: { product_id: productId, location_id: locationId, skip, limit },
     }),
+  adjustStock: (adjustment: {
+    product_id: number
+    location_id: number
+    quantity: number
+    reason: string
+    note?: string
+  }) => apiClient.post('/api/v1/stock/adjust', adjustment),
+}
+
+// Enhanced Products API with search and pagination
+export const productsAPI_v2 = {
+  list: (params?: { search?: string; skip?: number; limit?: number; organization_id?: number }) =>
+    apiClient.get<{ data: Product[]; total?: number }>('/api/v1/products', {
+      params,
+    }),
+  create: (product: {
+    sku: string
+    name: string
+    price: number
+    cost?: number
+    barcode?: string
+    description?: string
+    category?: string
+    organization_id: number
+  }) => apiClient.post<Product>('/api/v1/products', product),
 }
 
 // Subscriptions API

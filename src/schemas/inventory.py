@@ -67,7 +67,7 @@ class AdjustmentCreate(BaseModel):
     product_id: int = Field(..., gt=0, description="Product ID")
     location_id: int = Field(..., gt=0, description="Location ID")
     quantity: int = Field(..., description="Adjustment quantity (positive or negative)")
-    reason: str = Field(..., min_length=1, description="Adjustment reason (PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE, ADJUSTMENT)")
+    reason: str = Field(..., description="Adjustment reason (PHYSICAL_COUNT_DISCREPANCY, DAMAGE, SHRINKAGE, ADJUSTMENT)")
     note: Optional[str] = Field(None, description="Optional adjustment notes")
 
 
