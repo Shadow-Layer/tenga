@@ -68,6 +68,7 @@ export const useAppContextStore = create<AppContextStore>((set) => ({
 
 interface POSStore {
   cartItems: Array<{ productId: number; quantity: number; unitPrice: number; name: string }>
+  selectedCustomerId: number | null
   paymentMethod: string
   isProcessing: boolean
   error: string | null
@@ -78,10 +79,12 @@ interface POSStore {
   setPaymentMethod: (method: string) => void
   setIsProcessing: (processing: boolean) => void
   setError: (error: string | null) => void
+  setSelectedCustomer: (customerId: number | null) => void
 }
 
 export const usePOSStore = create<POSStore>((set) => ({
   cartItems: [],
+  selectedCustomerId: null,
   paymentMethod: 'CASH',
   isProcessing: false,
   error: null,
@@ -114,8 +117,9 @@ export const usePOSStore = create<POSStore>((set) => ({
               item.productId === productId ? { ...item, quantity } : item,
             ),
     })),
-  clearCart: () => set({ cartItems: [], error: null }),
+  clearCart: () => set({ cartItems: [], error: null, selectedCustomerId: null }),
   setPaymentMethod: (method) => set({ paymentMethod: method }),
   setIsProcessing: (processing) => set({ isProcessing: processing }),
   setError: (error) => set({ error }),
+  setSelectedCustomer: (customerId) => set({ selectedCustomerId: customerId }),
 }))
