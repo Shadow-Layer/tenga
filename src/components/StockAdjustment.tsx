@@ -67,7 +67,7 @@ export function StockAdjustment() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+     
     // Prevent duplicate submissions
     const now = Date.now()
     if (now - lastSubmitTime < 1000) return
@@ -80,6 +80,11 @@ export function StockAdjustment() {
 
     if (!selectedLocation) {
       setError('Please select a location first.')
+      return
+    }
+
+    if (!reason || !reasonMapping[reason]) {
+      setError('Please select a valid reason for adjustment.')
       return
     }
 
@@ -130,6 +135,7 @@ export function StockAdjustment() {
     } finally {
       setLoading(false)
     }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -172,11 +178,11 @@ export function StockAdjustment() {
           {/* Adjustment Type Buttons */}
           <div className="mb-6">
             <p className="text-sm font-medium text-gray-900 mb-3">What are you doing?</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setAdjustmentType('add')}
-                className={`py-3 px-4 rounded-lg border-2 transition font-medium text-center ${
+                className={`py-3 px-4 rounded-lg border-2 transition font-medium text-center h-14 ${
                   adjustmentType === 'add'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
@@ -188,7 +194,7 @@ export function StockAdjustment() {
               <button
                 type="button"
                 onClick={() => setAdjustmentType('remove')}
-                className={`py-3 px-4 rounded-lg border-2 transition font-medium text-center ${
+                className={`py-3 px-4 rounded-lg border-2 transition font-medium text-center h-14 ${
                   adjustmentType === 'remove'
                     ? 'border-red-500 bg-red-50 text-red-700'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
@@ -200,7 +206,7 @@ export function StockAdjustment() {
               <button
                 type="button"
                 onClick={() => setAdjustmentType('count')}
-                className={`py-3 px-4 rounded-lg border-2 transition font-medium text-center ${
+                className={`py-3 px-4 rounded-lg border-2 transition font-medium text-center h-14 ${
                   adjustmentType === 'count'
                     ? 'border-purple-500 bg-purple-50 text-purple-700'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
@@ -224,7 +230,7 @@ export function StockAdjustment() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold"
+               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold h-12 text-base"
                 required
               />
               <span className="text-lg font-medium text-gray-600">units</span>
@@ -247,7 +253,7 @@ export function StockAdjustment() {
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-12 text-base"
               required
             >
               <option value="">— Select a reason —</option>
@@ -267,7 +273,7 @@ export function StockAdjustment() {
               onChange={(e) => setNote(e.target.value)}
               placeholder="E.g., Invoice #, customer name, etc."
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
@@ -283,17 +289,17 @@ export function StockAdjustment() {
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4 border-t border-gray-200 flex-col sm:flex-row">
             <button
               type="button"
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium h-12 text-base"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !quantity || !reason}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition font-medium"
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition font-medium h-12 text-base"
             >
               {loading ? 'Saving...' : 'Record Adjustment'}
             </button>

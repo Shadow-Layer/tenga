@@ -222,6 +222,8 @@ class Sale(BaseEntity):
     __table_args__ = (
         Index('ix_sale_created_till', 'till_id', 'created_at'),
         Index('ix_sale_organization_created', 'organization_id', 'created_at'),
+        Index('ix_sale_fiscal_number', 'fiscal_number'),
+        Index('ix_sale_fiscal_status', 'fiscal_status'),
     )
     
     id = Column(Integer, primary_key=True)
@@ -235,6 +237,11 @@ class Sale(BaseEntity):
     status = Column(String(20), nullable=False, default="completed")  # completed, pending, cancelled
     notes = Column(Text, nullable=True)
     till_session_id = Column(Integer, nullable=True)
+    # Fiscal integration fields (TengaVFD)
+    fiscal_number = Column(String(50), nullable=True, unique=True)  # ZIMRA-assigned fiscal receipt #
+    fiscal_status = Column(String(20), nullable=False, default="pending")  # pending, submitted, acknowledged, failed
+    fiscal_status_updated_at = Column(DateTime, nullable=True)
+    fiscal_submission_attempts = Column(Integer, nullable=False, default=0)
     
     # Relationships
     organization = relationship("Organization", back_populates="sales")

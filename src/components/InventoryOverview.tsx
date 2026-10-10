@@ -67,7 +67,7 @@ export function InventoryOverview() {
   const [total, setTotal] = useState(0)
   const [skip, setSkip] = useState(0)
   const [limit] = useState(10)
-  const searchTimeoutRef = useRef<NodeJS.Timeout>()
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -106,6 +106,10 @@ export function InventoryOverview() {
           setError('Session expired. Please log in again.')
         } else if (err.response?.status === 403) {
           setError('Access denied')
+        } else if (err.response?.status === 404) {
+          setError('Products not found')
+        } else if (err.response?.status === 500) {
+          setError('Server error. Please try again.')
         } else {
           setError('Failed to load products')
         }
@@ -181,15 +185,16 @@ export function InventoryOverview() {
 
       {/* Quick Actions */}
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+        <div className="flex gap-3 flex-wrap sm:flex-nowrap">
+          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
             <Plus size={18} />
-            Add Product
+            <span className="hidden sm:inline">Add Product</span>
+            <span className="sm:hidden">Add</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
+          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
             Count Stock
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
+          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
             Import CSV
           </button>
         </div>
@@ -198,13 +203,13 @@ export function InventoryOverview() {
       {/* Search & Filter */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="relative">
-          <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
             placeholder="Search by product name or SKU..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+           className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-12"
           />
         </div>
       </div>
@@ -219,74 +224,118 @@ export function InventoryOverview() {
         ) : filteredProducts.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
             <Package size={48} className="mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-600 font-medium">No products found</p>
-            <p className="text-gray-500 text-sm mt-1">Try a different search or add a new product.</p>
+            <p className="text-gray-600 font-medium">
+              {searchQuery ? 'No products match your search' : 'No products found'}
+            </p>
+            <p className="text-gray-500 text-sm mt-1">
+              {searchQuery ? 'Try a different search term or add a new product.' : 'Get started by adding your first product.'}
+            </p>
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Product</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">SKU</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Price</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Stock</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Last Updated</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProducts.map((product) => (
-                      <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50 transition">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600 font-mono">{product.sku}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{product.category || '—'}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-right">{product.price} ZWD</td>
-                        <td className="px-4 py-3 text-sm font-bold text-center text-gray-900">{product.stock}</td>
-                        <td className="px-4 py-3 text-center">
-                          <StatusBadge status={product.status} />
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{product.lastUpdated}</td>
-                        <td className="px-4 py-3 text-center">
-                          <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded hover:bg-gray-100 transition">
-                            <Eye size={16} className="text-gray-600" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+           {/* Desktop Table View (hidden on tablet/mobile) */}
+           <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
+             <div className="overflow-x-auto">
+               <table className="w-full">
+                 <thead className="bg-gray-50 border-b border-gray-200">
+                   <tr>
+                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Product</th>
+                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">SKU</th>
+                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
+                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Price</th>
+                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Stock</th>
+                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Status</th>
+                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Last Updated</th>
+                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Action</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {filteredProducts.map((product) => (
+                     <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50 transition">
+                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
+                       <td className="px-4 py-3 text-sm text-gray-600 font-mono">{product.sku}</td>
+                       <td className="px-4 py-3 text-sm text-gray-600">{product.category || '—'}</td>
+                       <td className="px-4 py-3 text-sm text-gray-900 text-right">{product.price} ZWD</td>
+                       <td className="px-4 py-3 text-sm font-bold text-center text-gray-900">{product.stock}</td>
+                       <td className="px-4 py-3 text-center">
+                         <StatusBadge status={product.status} />
+                       </td>
+                       <td className="px-4 py-3 text-sm text-gray-500">{product.lastUpdated}</td>
+                       <td className="px-4 py-3 text-center">
+                         <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded hover:bg-gray-100 transition">
+                           <Eye size={16} className="text-gray-600" />
+                         </button>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+           </div>
 
-            {/* Pagination */}
-            <div className="mt-6 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Page {Math.floor(skip / limit) + 1} of {Math.ceil(total / limit)}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSkip(Math.max(0, skip - limit))}
-                  disabled={skip === 0}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setSkip(skip + limit)}
-                  disabled={skip + limit >= total}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+           {/* Mobile/Tablet Card View (visible on small screens) */}
+           <div className="md:hidden space-y-3">
+             {filteredProducts.map((product) => (
+               <div key={product.id} className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+                 <div className="flex items-start justify-between gap-2">
+                   <div className="flex-1">
+                     <h3 className="font-medium text-gray-900 text-sm">{product.name}</h3>
+                     <p className="text-xs text-gray-500 font-mono mt-0.5">{product.sku}</p>
+                   </div>
+                   <StatusBadge status={product.status} />
+                 </div>
+                 <div className="grid grid-cols-2 gap-2 text-xs">
+                   <div>
+                     <p className="text-gray-500">Price</p>
+                     <p className="font-semibold text-gray-900">{product.price} ZWD</p>
+                   </div>
+                   <div>
+                     <p className="text-gray-500">Stock</p>
+                     <p className="font-semibold text-gray-900">{product.stock} units</p>
+                   </div>
+                   {product.category && (
+                     <div>
+                       <p className="text-gray-500">Category</p>
+                       <p className="font-semibold text-gray-900">{product.category}</p>
+                     </div>
+                   )}
+                   <div>
+                     <p className="text-gray-500">Updated</p>
+                     <p className="font-semibold text-gray-900">{product.lastUpdated}</p>
+                   </div>
+                 </div>
+                 <button className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-blue-300 text-blue-600 hover:bg-blue-50 transition font-medium text-sm h-10">
+                   <Eye size={16} />
+                   View Details
+                 </button>
+               </div>
+             ))}
+           </div>
+
+           {/* Pagination */}
+           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+             <p className="text-sm text-gray-600">
+               Page {Math.floor(skip / limit) + 1} of {Math.ceil(total / limit)}
+             </p>
+             <div className="flex gap-2 w-full sm:w-auto">
+               <button
+                 onClick={() => setSkip(Math.max(0, skip - limit))}
+                 disabled={skip === 0}
+                 className="flex-1 sm:flex-initial px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-sm h-12"
+               >
+                 Previous
+               </button>
+               <button
+                 onClick={() => setSkip(skip + limit)}
+                 disabled={skip + limit >= total}
+                 className="flex-1 sm:flex-initial px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-sm h-12"
+               >
+                 Next
+               </button>
+             </div>
+           </div>
+         </>
+       )}
       </div>
     </div>
   )

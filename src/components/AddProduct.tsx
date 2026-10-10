@@ -140,6 +140,7 @@ export function AddProduct() {
     } finally {
       setLoading(false)
     }
+  }
 
   const margin = formData.price !== '' && formData.cost !== '' ? Math.round(((formData.price - formData.cost) / formData.price) * 100) : 0
 
@@ -187,14 +188,14 @@ export function AddProduct() {
                 <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
                   Product Name *
                 </label>
-                <input
+               <input
                   id="name"
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="E.g., Premium Coffee"
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 h-12 text-base ${
                     errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                   }`}
                 />
@@ -213,7 +214,7 @@ export function AddProduct() {
                     value={formData.sku}
                     onChange={handleChange}
                     placeholder="E.g., COFFEE-001"
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 font-mono ${
+                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 font-mono h-12 text-base ${
                       errors.sku ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                     }`}
                   />
@@ -229,7 +230,7 @@ export function AddProduct() {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-12 text-base"
                   >
                     <option value="">— Select category —</option>
                     {categories.map((cat) => (
@@ -245,14 +246,14 @@ export function AddProduct() {
                 <label htmlFor="description" className="block text-sm font-medium text-gray-900 mb-2">
                   Description
                 </label>
-                <textarea
+                 <textarea
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   placeholder="Product details, origin, ingredients, etc."
                   rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
             </div>
@@ -275,7 +276,7 @@ export function AddProduct() {
                     onChange={handleChange}
                     placeholder="0"
                     min="0"
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
+                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 h-12 text-base ${
                       errors.price ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                     }`}
                   />
@@ -294,7 +295,7 @@ export function AddProduct() {
                     onChange={handleChange}
                     placeholder="0"
                     min="0"
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
+                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 h-12 text-base ${
                       errors.cost ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                     }`}
                   />
@@ -327,7 +328,7 @@ export function AddProduct() {
                     value={formData.barcode}
                     onChange={handleChange}
                     placeholder="E.g., 8472015928344"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono h-12 text-base"
                   />
                   <p className="text-xs text-gray-500 mt-1">Optional. Used for barcode scanning at checkout.</p>
                 </div>
@@ -336,20 +337,20 @@ export function AddProduct() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 flex-col sm:flex-row">
             <button
               type="button"
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium h-12 text-base"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition font-medium"
-            >
-              {loading ? 'Creating...' : 'Create Product'}
-            </button>
+             <button
+               type="submit"
+               disabled={loading || Object.keys(errors).length > 0}
+               className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition font-medium h-12 text-base"
+             >
+               {loading ? 'Creating...' : 'Create Product'}
+             </button>
           </div>
         </form>
       </div>

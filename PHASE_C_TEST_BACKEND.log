@@ -1,0 +1,1657 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/tea/Documents/apps/tenga-inventory
+plugins: cov-4.1.0, anyio-4.13.0
+collecting ... collected 42 items
+
+tests/test_api_products.py::TestProductsAPI::test_create_product_with_barcode PASSED [  2%]
+tests/test_api_products.py::TestProductsAPI::test_create_product_without_barcode ERROR [  4%]
+tests/test_api_products.py::TestProductsAPI::test_get_product PASSED     [  7%]
+tests/test_api_products.py::TestProductsAPI::test_update_product_barcode PASSED [  9%]
+tests/test_api_products.py::TestProductsAPI::test_list_products ERROR    [ 11%]
+tests/test_api_products.py::TestProductsAPI::test_search_by_name ERROR   [ 14%]
+tests/test_api_products.py::TestProductsAPI::test_search_by_sku PASSED   [ 16%]
+tests/test_api_products.py::TestProductsAPI::test_search_by_barcode PASSED [ 19%]
+tests/test_api_products.py::TestProductsAPI::test_search_case_insensitive PASSED [ 21%]
+tests/test_api_products.py::TestProductsAPI::test_create_product_requires_auth PASSED [ 23%]
+tests/test_api_products.py::TestProductsAPI::test_cross_org_access_denied FAILED [ 26%]
+tests/test_api_products.py::TestProductsAPI::test_list_products_cross_org_denied PASSED [ 28%]
+tests/test_api_products.py::TestProductsAPI::test_duplicate_sku_conflict PASSED [ 30%]
+tests/test_api_products.py::TestProductsAPI::test_invalid_product_not_found ERROR [ 33%]
+tests/test_api_products.py::TestProductsAPI::test_pagination_skip_limit ERROR [ 35%]
+tests/test_api_products.py::TestProductsAPI::test_pagination_last_page PASSED [ 38%]
+tests/test_api_products.py::TestProductsAPI::test_update_product_name_only PASSED [ 40%]
+tests/test_api_products.py::TestProductsAPI::test_update_product_sku_conflict ERROR [ 42%]
+tests/test_api_products.py::TestProductsAPI::test_search_no_results ERROR [ 45%]
+tests/test_api_products.py::TestProductsAPI::test_update_price_and_cost ERROR [ 47%]
+tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available ERROR [ 50%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_physical_count_discrepancy ERROR [ 52%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_damage ERROR [ 54%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_shrinkage ERROR [ 57%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_adjustment ERROR [ 59%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_physical_count_discrepancy ERROR [ 61%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_damage ERROR [ 64%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_shrinkage ERROR [ 66%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_adjustment FAILED [ 69%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_invalid_reason_returns_400 ERROR [ 71%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_unknown_label_returns_400 ERROR [ 73%]
+tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_empty_reason_returns_400 FAILED [ 76%]
+tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_requires_authentication PASSED [ 78%]
+tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_records_current_user_id FAILED [ 80%]
+tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_derives_organization_from_user FAILED [ 83%]
+tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_verifies_location_ownership FAILED [ 85%]
+tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_list_movements_requires_authentication PASSED [ 88%]
+tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_list_movements_scoped_to_user_org FAILED [ 90%]
+tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_get_movement_detail_requires_auth FAILED [ 92%]
+tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_get_movement_detail_denied_for_other_org ERROR [ 95%]
+tests/test_slice_a_authorization.py::TestAdjustmentSchemaChanges::test_adjustment_create_excludes_recorded_by_id PASSED [ 97%]
+tests/test_slice_a_authorization.py::TestAdjustmentSchemaChanges::test_adjustment_create_excludes_organization_id PASSED [100%]
+
+==================================== ERRORS ====================================
+____ ERROR at setup of TestProductsAPI.test_create_product_without_barcode _____
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$hhBx.qy4KoYp9IZWd.5XBecknpfJ2Yfbf1LIEbksAnQpKhn2zZPxK', 'operator', 1, None, '2026-10-10 06:41:10.194345', '2026-10-10 06:41:10.194355')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_____________ ERROR at setup of TestProductsAPI.test_list_products _____________
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$CdYcUTP9DUEitVFZw7oFIOxOgsBJPTrKVtV0zrP9UF3Am9CqNFeWq', 'operator', 1, None, '2026-10-10 06:41:17.439056', '2026-10-10 06:41:17.439064')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+____________ ERROR at setup of TestProductsAPI.test_search_by_name _____________
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: user
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$XhRij/VpfLd0e4jVG3o/y.BgTCkNpL6jDrRHW47kfI2kIhDF.G.yK', 'operator', 1, None, '2026-10-10 06:41:19.979630', '2026-10-10 06:41:19.979643')]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+_______ ERROR at setup of TestProductsAPI.test_invalid_product_not_found _______
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$.Xr7WsRzySRZl/77bIPTzuN2I5t649wnphg0TsK84qIklaDNcyt.C', 'operator', 1, None, '2026-10-10 06:41:35.987252', '2026-10-10 06:41:35.987260')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_________ ERROR at setup of TestProductsAPI.test_pagination_skip_limit _________
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$NOObMGgXdicrVwsvuwGGFOeVnrk4BXvReEjc/dv/GaW3g/eukt672', 'operator', 1, None, '2026-10-10 06:41:37.678888', '2026-10-10 06:41:37.678902')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+______ ERROR at setup of TestProductsAPI.test_update_product_sku_conflict ______
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: user
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:160: in authenticated_client
+    response = test_client.post(
+/usr/lib/python3.14/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../../../.local/lib/python3.14/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+/usr/lib/python3.14/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/usr/lib/python3.14/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/lib/python3.14/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/lib/python3.14/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+/usr/lib/python3.14/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+../../../.local/lib/python3.14/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+../../../.local/lib/python3.14/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/lib/python3.14/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/usr/lib64/python3.14/concurrent/futures/_base.py:454: in result
+    return self.__get_result()
+/usr/lib64/python3.14/concurrent/futures/_base.py:396: in __get_result
+    raise self._exception
+/usr/lib/python3.14/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+../../../.local/lib/python3.14/site-packages/fastapi/applications.py:1215: in __call__
+    await super().__call__(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../../../.local/lib/python3.14/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+../../../.local/lib/python3.14/site-packages/fastapi/telemetry/_asgi.py:151: in __call__
+    await self.app(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/middleware/base.py:197: in __call__
+    response = await self.dispatch_func(request, call_next)
+src/main.py:63: in log_requests
+    response = await call_next(request)
+../../../.local/lib/python3.14/site-packages/starlette/middleware/base.py:173: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../../../.local/lib/python3.14/site-packages/starlette/middleware/base.py:149: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../../../.local/lib/python3.14/site-packages/starlette/middleware/cors.py:91: in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+../../../.local/lib/python3.14/site-packages/starlette/middleware/cors.py:149: in simple_response
+    await self.app(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../../../.local/lib/python3.14/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../../../.local/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:2786: in app
+    await route.handle(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:1817: in handle
+    await self.original_router.handle(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:2869: in handle
+    await included_router._handle_selected(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:1843: in _handle_selected
+    await original_route.handle(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:1308: in handle
+    await effective_context.app(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:165: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../../../.local/lib/python3.14/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../../../.local/lib/python3.14/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:151: in app
+    response = await f(request)
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:727: in app
+    raw_response = await run_endpoint_function(
+../../../.local/lib/python3.14/site-packages/fastapi/routing.py:362: in run_endpoint_function
+    return await run_in_threadpool(
+../../../.local/lib/python3.14/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+/usr/lib/python3.14/site-packages/anyio/to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+/usr/lib/python3.14/site-packages/anyio/_backends/_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+/usr/lib/python3.14/site-packages/anyio/_backends/_asyncio.py:1002: in run
+    result = context.run(func, *args)
+../../../.local/lib/python3.14/site-packages/fastapi/telemetry/_api.py:240: in _run_sync_endpoint
+    return function(**arguments)
+src/routers/auth.py:38: in login
+    user = db.query(User).filter(User.email == credentials.email).first()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2823: in first
+    return self.limit(1)._iter().first()  # type: ignore[return-value]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2921: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2473: in execute
+    return self._execute_internal(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2363: in _execute_internal
+    compile_state_cls.orm_execute_statement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/context.py:316: in orm_execute_statement
+    result = conn.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user
+E   [SQL: SELECT user.id AS user_id, user.organization_id AS user_organization_id, user.email AS user_email, user.username AS user_username, user.full_name AS user_full_name, user.password_hash AS user_password_hash, user.role AS user_role, user.is_active AS user_is_active, user.last_login AS user_last_login, user.created_at AS user_created_at, user.updated_at AS user_updated_at 
+E   FROM user 
+E   WHERE user.email = ?
+E    LIMIT ? OFFSET ?]
+E   [parameters: ('cashier@test.com', 1, 0)]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+---------------------------- Captured stderr setup -----------------------------
+DEBUG:asyncio:Using selector: EpollSelector
+ERROR:src.main:Unhandled exception: (sqlite3.OperationalError) no such table: user
+[SQL: SELECT user.id AS user_id, user.organization_id AS user_organization_id, user.email AS user_email, user.username AS user_username, user.full_name AS user_full_name, user.password_hash AS user_password_hash, user.role AS user_role, user.is_active AS user_is_active, user.last_login AS user_last_login, user.created_at AS user_created_at, user.updated_at AS user_updated_at 
+FROM user 
+WHERE user.email = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('cashier@test.com', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+------------------------------ Captured log setup ------------------------------
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+ERROR    src.main:main.py:116 Unhandled exception: (sqlite3.OperationalError) no such table: user
+[SQL: SELECT user.id AS user_id, user.organization_id AS user_organization_id, user.email AS user_email, user.username AS user_username, user.full_name AS user_full_name, user.password_hash AS user_password_hash, user.role AS user_role, user.is_active AS user_is_active, user.last_login AS user_last_login, user.created_at AS user_created_at, user.updated_at AS user_updated_at 
+FROM user 
+WHERE user.email = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('cashier@test.com', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+___________ ERROR at setup of TestProductsAPI.test_search_no_results ___________
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: user.email, user.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: user.email, user.organization_id
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$cgPNjiPqvdNjsaVTH7OtMeIl7Xw.iXe3jVvCoci7YUklrKWN9kuN2', 'operator', 1, None, '2026-10-10 06:41:49.921276', '2026-10-10 06:41:49.921292')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_________ ERROR at setup of TestProductsAPI.test_update_price_and_cost _________
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: user.email, user.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: user.email, user.organization_id
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$7jfeFPXkGGIgCUJvYRiwTOOu/c/qeZ6yUKk/F4NW7ha9mhzCn25RG', 'operator', 1, None, '2026-10-10 06:41:52.181736', '2026-10-10 06:41:52.181744')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+______ ERROR at setup of TestInventory.test_inventory_endpoints_available ______
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: user.email, user.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: user.email, user.organization_id
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$MQ0GFrUm7ezfbjFBSHwAw.CHoZT7iGb3FGkSdgh6qKa3tGsBmSUv6', 'operator', 1, None, '2026-10-10 06:41:54.531368', '2026-10-10 06:41:54.531379')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_canonical_code_physical_count_discrepancy _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$W/BbeaXRJmBf961w1t0SwOhR1wR.WmFsoEJlSJr4Npe597ura4ZXW', 'operator', 1, None, '2026-10-10 06:41:57.213106', '2026-10-10 06:41:57.213117')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_canonical_code_damage _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: user.email, user.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: user.email, user.organization_id
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$z/zHJ/b0tLaaNeeI1h8d9OmQ20eekeqsU4mcwEO.xmAAU6Qtscr5e', 'operator', 1, None, '2026-10-10 06:41:59.706143', '2026-10-10 06:41:59.706155')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_canonical_code_shrinkage _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: location.code, location.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:73: in location
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: location.code, location.organization_id
+E   [SQL: INSERT INTO location (organization_id, code, name, description, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'LOC001', 'Main Store', None, 1, '2026-10-10 06:42:01.950488', '2026-10-10 06:42:01.950495')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_canonical_code_adjustment _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: location.code, location.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:73: in location
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: location.code, location.organization_id
+E   [SQL: INSERT INTO location (organization_id, code, name, description, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'LOC001', 'Main Store', None, 1, '2026-10-10 06:42:04.001817', '2026-10-10 06:42:04.001824')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_label_physical_count_discrepancy _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: location.code, location.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:73: in location
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: location.code, location.organization_id
+E   [SQL: INSERT INTO location (organization_id, code, name, description, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'LOC001', 'Main Store', None, 1, '2026-10-10 06:42:07.861466', '2026-10-10 06:42:07.861483')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_label_damage _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: user
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$l8kCblujrT4rc2yiN4VoSu3ApHEOPS1B381mUFExq3Ti6msMoI5A2', 'operator', 1, None, '2026-10-10 06:42:10.938018', '2026-10-10 06:42:10.938033')]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_label_shrinkage _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: location.code, location.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:73: in location
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: location.code, location.organization_id
+E   [SQL: INSERT INTO location (organization_id, code, name, description, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'LOC001', 'Main Store', None, 1, '2026-10-10 06:42:16.628113', '2026-10-10 06:42:16.628123')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_invalid_reason_returns_400 _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: UNIQUE constraint failed: location.code, location.organization_id
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:73: in location
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: location.code, location.organization_id
+E   [SQL: INSERT INTO location (organization_id, code, name, description, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'LOC001', 'Main Store', None, 1, '2026-10-10 06:42:23.242539', '2026-10-10 06:42:23.242577')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestStockAdjustmentReasonValidation.test_adjust_with_unknown_label_returns_400 _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$OTs7lHApMv.y.nB5/E0zSufv6pPby9nIoGqYlCXiRO/LG9I5QQ7he', 'operator', 1, None, '2026-10-10 06:42:25.345789', '2026-10-10 06:42:25.345804')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+_ ERROR at setup of TestMovementEndpointAuthorization.test_get_movement_detail_denied_for_other_org _
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: user
+
+The above exception was the direct cause of the following exception:
+tests/conftest.py:59: in user
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (1, 'cashier@test.com', 'cashier', 'Test Cashier', '$2b$12$rt.Dsj3s9/rXlSC9AsUmUelQi8JzK2VbKzKoXnnjq1Q6vB.PKBgHe', 'operator', 1, None, '2026-10-10 06:42:39.106199', '2026-10-10 06:42:39.106211')]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+=================================== FAILURES ===================================
+_________________ TestProductsAPI.test_cross_org_access_denied _________________
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+tests/test_api_products.py:346: in test_cross_org_access_denied
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+<sqlalchemy generated _go() wrapper for sqlalchemy.orm.session.SessionTransaction.commit>:2: in commit
+    return target(fn, self, _to_root=_to_root)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+<sqlalchemy generated _go() wrapper for sqlalchemy.orm.session.SessionTransaction._prepare_impl>:2: in _prepare_impl
+    return target(fn, self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+<sqlalchemy generated warned() wrapper for sqlalchemy.orm.session.Session._flush>:2: in _flush
+    return target(fn, self, objects=objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1237: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+E   [SQL: INSERT INTO user (organization_id, email, username, full_name, password_hash, role, is_active, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: (2, 'user2@test.com', 'user2', 'User 2', '$2b$12$5jzH3Kwq05ufvrILh7DKxOk.x4H2s/wNAE3gPrSN16vr3PN0ZFTqW', 'operator', 1, None, '2026-10-10 06:41:29.684199', '2026-10-10 06:41:29.684212')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+---------------------------- Captured stderr setup -----------------------------
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:src.main:POST /api/v1/auth/login - Status: 200 - Duration: 0.429s
+INFO:httpx:HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+------------------------------ Captured log setup ------------------------------
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+INFO     src.main:main.py:65 POST /api/v1/auth/login - Status: 200 - Duration: 0.429s
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+____ TestStockAdjustmentReasonValidation.test_adjust_with_label_adjustment _____
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: product
+
+The above exception was the direct cause of the following exception:
+tests/test_api_inventory.py:165: in test_adjust_with_label_adjustment
+    "product_id": product.id,
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/attributes.py:575: in __get__
+    return self.impl.get(state, dict_)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/attributes.py:1091: in get
+    value = self._fire_loader_callables(state, key, passive)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/attributes.py:1121: in _fire_loader_callables
+    return state._load_expired(state, passive)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:833: in _load_expired
+    self.manager.expired_attribute_loader(self, toload, passive)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/loading.py:1700: in _load_scalar_attributes
+    result = _load_on_ident(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/loading.py:518: in _load_on_ident
+    return _load_on_pk_identity(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/loading.py:702: in _load_on_pk_identity
+    session.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2473: in execute
+    return self._execute_internal(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2363: in _execute_internal
+    compile_state_cls.orm_execute_statement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/context.py:316: in orm_execute_statement
+    result = conn.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1822: in _execute_context
+    return self._exec_single_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1962: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1943: in _exec_single_context
+    self.dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: product
+E   [SQL: SELECT product.id, product.organization_id, product.sku, product.name, product.description, product.category, product.price, product.cost, product.barcode, product.is_active, product.created_at, product.updated_at 
+E   FROM product 
+E   WHERE product.id = ?]
+E   [parameters: (1,)]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+---------------------------- Captured stderr setup -----------------------------
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:src.main:POST /api/v1/auth/login - Status: 200 - Duration: 0.505s
+INFO:httpx:HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+------------------------------ Captured log setup ------------------------------
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+INFO     src.main:main.py:65 POST /api/v1/auth/login - Status: 200 - Duration: 0.505s
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+_ TestStockAdjustmentReasonValidation.test_adjust_with_empty_reason_returns_400 _
+tests/test_api_inventory.py:219: in test_adjust_with_empty_reason_returns_400
+    "product_id": product.id,
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/attributes.py:575: in __get__
+    return self.impl.get(state, dict_)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/attributes.py:1091: in get
+    value = self._fire_loader_callables(state, key, passive)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/attributes.py:1121: in _fire_loader_callables
+    return state._load_expired(state, passive)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:833: in _load_expired
+    self.manager.expired_attribute_loader(self, toload, passive)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/loading.py:1712: in _load_scalar_attributes
+    raise orm_exc.ObjectDeletedError(state)
+E   sqlalchemy.orm.exc.ObjectDeletedError: Instance '<Product at 0x7f76ca342c90>' has been deleted, or its row is otherwise not present.
+---------------------------- Captured stderr setup -----------------------------
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:src.main:POST /api/v1/auth/login - Status: 200 - Duration: 0.454s
+INFO:httpx:HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+------------------------------ Captured log setup ------------------------------
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+INFO     src.main:main.py:65 POST /api/v1/auth/login - Status: 200 - Duration: 0.454s
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+_ TestAdjustmentAuthorizationAndIdentity.test_adjustment_records_current_user_id _
+tests/test_slice_a_authorization.py:64: in test_adjustment_records_current_user_id
+    user2 = User(
+<sqlalchemy generated __init__ for class src.models.entities.User>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2295: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'hashed_password' is an invalid keyword argument for User
+_ TestAdjustmentAuthorizationAndIdentity.test_adjustment_derives_organization_from_user _
+tests/test_slice_a_authorization.py:124: in test_adjustment_derives_organization_from_user
+    user_org1 = User(
+<sqlalchemy generated __init__ for class src.models.entities.User>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2295: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'hashed_password' is an invalid keyword argument for User
+_ TestAdjustmentAuthorizationAndIdentity.test_adjustment_verifies_location_ownership _
+tests/test_slice_a_authorization.py:184: in test_adjustment_verifies_location_ownership
+    user_org1 = User(
+<sqlalchemy generated __init__ for class src.models.entities.User>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2295: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'hashed_password' is an invalid keyword argument for User
+___ TestMovementEndpointAuthorization.test_list_movements_scoped_to_user_org ___
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2094: in _exec_insertmany_context
+    dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: NOT NULL constraint failed: inventory_movement.movement_type
+
+The above exception was the direct cause of the following exception:
+tests/test_slice_a_authorization.py:295: in test_list_movements_scoped_to_user_org
+    db.commit()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2095: in commit
+    trans.commit(_to_root=True)
+<sqlalchemy generated _go() wrapper for sqlalchemy.orm.session.SessionTransaction.commit>:2: in commit
+    return target(fn, self, _to_root=_to_root)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1330: in commit
+    self._prepare_impl()
+<sqlalchemy generated _go() wrapper for sqlalchemy.orm.session.SessionTransaction._prepare_impl>:2: in _prepare_impl
+    return target(fn, self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:1304: in _prepare_impl
+    self.session.flush()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4536: in flush
+    self._flush(objects)
+<sqlalchemy generated warned() wrapper for sqlalchemy.orm.session.Session._flush>:2: in _flush
+    return target(fn, self, objects=objects)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4679: in _flush
+    with util.safe_reraise():
+../../../.local/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4640: in _flush
+    flush_context.execute()
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:467: in execute
+    rec.execute(self)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:643: in execute
+    util.preloaded.orm_persistence._save_obj(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:92: in _save_obj
+    _emit_insert_statements(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1147: in _emit_insert_statements
+    result = connection.execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1448: in execute
+    return meth(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1668: in _execute_clauseelement
+    ret = self._execute_context(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1820: in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2111: in _exec_insertmany_context
+    self._handle_dbapi_exception(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2332: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2094: in _exec_insertmany_context
+    dialect.do_execute(
+../../../.local/lib/python3.14/site-packages/sqlalchemy/engine/default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: inventory_movement.movement_type
+E   [SQL: INSERT INTO inventory_movement (organization_id, location_id, product_id, movement_type, quantity, reason, reference_id, reference_type, recorded_by_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id]
+E   [parameters: (1, 1, 1, None, 10, 'ADJUSTMENT', None, None, 1, '2026-10-10 06:42:36.147885', '2026-10-10 06:42:36.147893')]
+E   (Background on this error at: https://sqlalche.me/e/21/gkpj)
+___ TestMovementEndpointAuthorization.test_get_movement_detail_requires_auth ___
+tests/test_slice_a_authorization.py:319: in test_get_movement_detail_requires_auth
+    assert response.status_code in [401, 403], "Unauthenticated movement detail should be rejected"
+E   AssertionError: Unauthenticated movement detail should be rejected
+E   assert 404 in [401, 403]
+E    +  where 404 = <Response [404 Not Found]>.status_code
+----------------------------- Captured stderr call -----------------------------
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:src.main:GET /api/v1/stock/movements/1 - Status: 404 - Duration: 0.084s
+INFO:httpx:HTTP Request: GET http://testserver/api/v1/stock/movements/1 "HTTP/1.1 404 Not Found"
+------------------------------ Captured log call -------------------------------
+DEBUG    asyncio:selector_events.py:64 Using selector: EpollSelector
+INFO     src.main:main.py:65 GET /api/v1/stock/movements/1 - Status: 404 - Duration: 0.084s
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/stock/movements/1 "HTTP/1.1 404 Not Found"
+=============================== warnings summary ===============================
+../../../.local/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /home/tea/.local/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+src/schemas/organization.py:14
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/organization.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrganizationResponse(BaseModel):
+
+src/schemas/user.py:16
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/user.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+src/schemas/user.py:51
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/user.py:51: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CurrentUserResponse(BaseModel):
+
+src/schemas/product.py:31
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/product.py:31: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductResponse(BaseModel):
+
+src/schemas/location.py:15
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/location.py:15: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LocationResponse(BaseModel):
+
+src/schemas/sale.py:19
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:19: PydanticDeprecatedSince20: `min_items` is deprecated and will be removed, use `min_length` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    items: List[SaleLineItem] = Field(..., min_items=1, description="Sale line items")
+
+src/schemas/sale.py:24
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SaleItemResponse(BaseModel):
+
+src/schemas/sale.py:37
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:37: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SaleResponse(BaseModel):
+
+src/schemas/sale.py:70
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/sale.py:70: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SaleCommitResponse(BaseModel):
+
+src/schemas/inventory.py:22
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/inventory.py:22: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class InventoryMovement(BaseModel):
+
+src/schemas/inventory.py:44
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/inventory.py:44: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class MovementDetailResponse(BaseModel):
+
+src/schemas/subscription.py:17
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/subscription.py:17: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SubscriptionResponse(BaseModel):
+
+src/schemas/till.py:7
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:7: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillCreate(BaseModel):
+
+src/schemas/till.py:23
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:23: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillResponse(BaseModel):
+
+src/schemas/till.py:50
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:50: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionOpen(BaseModel):
+
+src/schemas/till.py:66
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:66: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionClose(BaseModel):
+
+src/schemas/till.py:84
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:84: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillStatusResponse(BaseModel):
+
+src/schemas/till.py:110
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:110: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionOpenResponse(BaseModel):
+
+src/schemas/till.py:135
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:135: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TillSessionCloseResponse(BaseModel):
+
+src/schemas/till.py:160
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/schemas/till.py:160: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PaginatedTillResponse(BaseModel):
+
+tests/test_api_products.py: 154 warnings
+tests/test_api_inventory.py: 70 warnings
+tests/test_slice_a_authorization.py: 40 warnings
+  /home/tea/.local/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:4296: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore[call-arg, no-any-return, no-untyped-call]  # noqa: E501
+
+tests/test_api_products.py: 11 warnings
+tests/test_api_inventory.py: 2 warnings
+  /home/tea/Documents/apps/tenga-inventory/tests/../src/routers/auth.py:63: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    user=UserResponse.from_orm(user),
+
+tests/test_slice_a_authorization.py::TestAdjustmentSchemaChanges::test_adjustment_create_excludes_recorded_by_id
+  /home/tea/Documents/apps/tenga-inventory/tests/test_slice_a_authorization.py:385: PydanticDeprecatedSince20: The `__fields__` attribute is deprecated, use the `model_fields` class property instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    schema = AdjustmentCreate.__fields__
+
+tests/test_slice_a_authorization.py::TestAdjustmentSchemaChanges::test_adjustment_create_excludes_organization_id
+  /home/tea/Documents/apps/tenga-inventory/tests/test_slice_a_authorization.py:395: PydanticDeprecatedSince20: The `__fields__` attribute is deprecated, use the `model_fields` class property instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    schema = AdjustmentCreate.__fields__
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_api_products.py::TestProductsAPI::test_cross_org_access_denied
+FAILED tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_adjustment
+FAILED tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_empty_reason_returns_400
+FAILED tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_records_current_user_id
+FAILED tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_derives_organization_from_user
+FAILED tests/test_slice_a_authorization.py::TestAdjustmentAuthorizationAndIdentity::test_adjustment_verifies_location_ownership
+FAILED tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_list_movements_scoped_to_user_org
+FAILED tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_get_movement_detail_requires_auth
+ERROR tests/test_api_products.py::TestProductsAPI::test_create_product_without_barcode
+ERROR tests/test_api_products.py::TestProductsAPI::test_list_products - sqlal...
+ERROR tests/test_api_products.py::TestProductsAPI::test_search_by_name - sqla...
+ERROR tests/test_api_products.py::TestProductsAPI::test_invalid_product_not_found
+ERROR tests/test_api_products.py::TestProductsAPI::test_pagination_skip_limit
+ERROR tests/test_api_products.py::TestProductsAPI::test_update_product_sku_conflict
+ERROR tests/test_api_products.py::TestProductsAPI::test_search_no_results - s...
+ERROR tests/test_api_products.py::TestProductsAPI::test_update_price_and_cost
+ERROR tests/test_api_inventory.py::TestInventory::test_inventory_endpoints_available
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_physical_count_discrepancy
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_damage
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_shrinkage
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_canonical_code_adjustment
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_physical_count_discrepancy
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_damage
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_label_shrinkage
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_invalid_reason_returns_400
+ERROR tests/test_api_inventory.py::TestStockAdjustmentReasonValidation::test_adjust_with_unknown_label_returns_400
+ERROR tests/test_slice_a_authorization.py::TestMovementEndpointAuthorization::test_get_movement_detail_denied_for_other_org
+======= 8 failed, 15 passed, 300 warnings, 19 errors in 99.56s (0:01:39) =======
