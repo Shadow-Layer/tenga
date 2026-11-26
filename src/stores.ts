@@ -67,12 +67,26 @@ export const useAppContextStore = create<AppContextStore>((set) => ({
 }))
 
 interface POSStore {
-  cartItems: Array<{ productId: number; quantity: number; unitPrice: number; name: string }>
+  cartItems: Array<{
+    productId: number
+    quantity: number
+    unitPrice: number
+    name: string
+    taxRate: string | null
+    taxInclusive: boolean
+  }>
   selectedCustomerId: number | null
   paymentMethod: string
   isProcessing: boolean
   error: string | null
-  addToCart: (productId: number, quantity: number, unitPrice: number, name: string) => void
+  addToCart: (
+    productId: number,
+    quantity: number,
+    unitPrice: number,
+    name: string,
+    taxRate: string | null,
+    taxInclusive: boolean,
+  ) => void
   removeFromCart: (productId: number) => void
   updateQuantity: (productId: number, quantity: number) => void
   clearCart: () => void
@@ -88,7 +102,7 @@ export const usePOSStore = create<POSStore>((set) => ({
   paymentMethod: 'CASH',
   isProcessing: false,
   error: null,
-  addToCart: (productId, quantity, unitPrice, name) =>
+  addToCart: (productId, quantity, unitPrice, name, taxRate, taxInclusive) =>
     set((state) => {
       const existing = state.cartItems.find((item) => item.productId === productId)
       if (existing) {
@@ -101,7 +115,7 @@ export const usePOSStore = create<POSStore>((set) => ({
         }
       }
       return {
-        cartItems: [...state.cartItems, { productId, quantity, unitPrice, name }],
+        cartItems: [...state.cartItems, { productId, quantity, unitPrice, name, taxRate, taxInclusive }],
       }
     }),
   removeFromCart: (productId) =>

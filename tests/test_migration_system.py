@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 from alembic.config import Config
 from alembic import command
+from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker
 
@@ -158,7 +159,9 @@ class TestAlembicMigrations:
                 result = conn.execute(text("SELECT version_num FROM alembic_version"))
                 version = result.scalar()
                 assert version is not None, "No version recorded"
-                assert version == "b143c7e5867b", f"Unexpected version: {version}"
+                assert version == ScriptDirectory.from_config(
+                    alembic_cfg
+                ).get_current_head(), f"Unexpected version: {version}"
         finally:
             del os.environ["DATABASE_URL"]
 

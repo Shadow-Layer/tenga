@@ -310,7 +310,7 @@ class TestPostgreSQLPersistence:
         
         location.organization_id = org.id
         till.organization_id = org.id
-        till.location_id = location.id
+        till.location = location
         product.organization_id = org.id
         user.organization_id = org.id
         

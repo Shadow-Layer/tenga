@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronDown, Search, Plus, AlertCircle, TrendingDown, Package, Eye } from 'lucide-react'
 import { useAuthStore } from '../stores'
-import { productsAPI_v2 } from '../api'
+import { inventoryAPI, locationsAPI, productsAPI_v2, type Location, type Product as ApiProduct } from '../api'
 
 /**
  * Inventory Overview Screen
@@ -16,67 +16,83 @@ import { productsAPI_v2 } from '../api'
  * Design principle: Simple, at-a-glance view. No administrative complexity exposed.
  */
 
-interface Product {
-  id: number
-  name: string
-  sku: string
-  category?: string
-  price: number
-  cost?: number
-  description?: string
-  organization_id: number
-}
-
-interface DisplayProduct extends Product {
+interface DisplayProduct extends ApiProduct {
   stock: number
-  status: 'available' | 'low' | 'out'
+  status: 'available' | 'out'
   lastUpdated: string
 }
 
-function StatusBadge({ status }: { status: 'available' | 'low' | 'out' }) {
+function StatusBadge({ status }: { status: 'available' | 'out' }) {
   const colors = {
     available: 'bg-green-50 text-green-700 border-green-200',
-    low: 'bg-yellow-50 text-yellow-700 border-yellow-200',
     out: 'bg-red-50 text-red-700 border-red-200',
   }
 
   const labels = {
     available: 'In Stock',
-    low: 'Low Stock',
     out: 'Out of Stock',
   }
 
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${colors[status]}`}>
       {status === 'out' && <AlertCircle size={12} />}
-      {status === 'low' && <TrendingDown size={12} />}
       {labels[status]}
     </span>
   )
 }
 
-export function InventoryOverview() {
+export function InventoryOverview({
+  onAddProduct,
+  onCountStock,
+  onImportCsv,
+  onOpenOperations,
+  onManageProduct,
+}: {
+  onAddProduct?: () => void
+  onCountStock?: () => void
+  onImportCsv?: () => void
+  onOpenOperations?: () => void
+  onManageProduct?: (productId: number) => void
+} = {}) {
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
   
-  const [selectedLocation, setSelectedLocation] = useState('Downtown Store')
+  const [locations, setLocations] = useState<Location[]>([])
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [products, setProducts] = useState<DisplayProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
+  const [outOfStockCount, setOutOfStockCount] = useState(0)
   const [skip, setSkip] = useState(0)
   const [limit] = useState(10)
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  // Fetch products from API
   useEffect(() => {
     if (!token || !user) {
       setError('Not authenticated')
+      setLoading(false)
+      return
+    }
+
+    locationsAPI.list(user.organization_id, 0, 100)
+      .then((response) => {
+        setLocations(response.data.items)
+        setSelectedLocationId((current) =>
+          current && response.data.items.some((location) => location.id === current)
+            ? current
+            : response.data.items[0]?.id ?? null,
+        )
+      })
+      .catch(() => setError('Failed to load locations'))
+  }, [token, user])
+
+  useEffect(() => {
+    if (!selectedLocationId) {
+      setProducts([])
       setLoading(false)
       return
     }
@@ -85,22 +101,33 @@ export function InventoryOverview() {
       try {
         setLoading(true)
         setError(null)
-        const response = await productsAPI_v2.list({
-          skip,
-          limit,
-          search: searchQuery || undefined,
-          organization_id: user.organization_id,
+        const [response, stockResponse] = await Promise.all([
+          productsAPI_v2.list({
+            skip,
+            limit,
+            search: searchQuery || undefined,
+            organization_id: user!.organization_id,
+          }),
+          inventoryAPI.getStockAtLocation(selectedLocationId),
+        ])
+        const stockByProduct = new Map(
+          stockResponse.data.items.map((item) => [item.product_id, item]),
+        )
+        const apiProducts: DisplayProduct[] = response.data.items.map((p) => {
+          const stock = stockByProduct.get(p.id)
+          return {
+          ...p,
+          stock: stock?.quantity ?? 0,
+          status: (stock?.quantity ?? 0) > 0 ? 'available' : 'out',
+          lastUpdated: stock?.last_movement_date
+            ? new Date(stock.last_movement_date).toLocaleString()
+            : 'No movements recorded',
+          }
         })
         
-        const apiProducts: DisplayProduct[] = (response.data.data || []).map((p: Product) => ({
-          ...p,
-          stock: Math.floor(Math.random() * 20), // Mock stock for display
-          status: (Math.random() > 0.6 ? 'low' : Math.random() > 0.3 ? 'available' : 'out') as 'available' | 'low' | 'out',
-          lastUpdated: 'Just now',
-        }))
-        
         setProducts(apiProducts)
-        setTotal(response.data.total || apiProducts.length)
+        setTotal(response.data.total)
+        setOutOfStockCount(stockResponse.data.items.filter((item) => item.quantity === 0).length)
       } catch (err: any) {
         if (err.response?.status === 401) {
           setError('Session expired. Please log in again.')
@@ -119,16 +146,12 @@ export function InventoryOverview() {
     }
 
     fetchProducts()
-  }, [token, user, skip, searchQuery])
+  }, [token, user, skip, searchQuery, selectedLocationId])
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)
     setSkip(0) // Reset pagination on search
     
-    // Debounce search requests
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
   }
 
   return (
@@ -146,11 +169,21 @@ export function InventoryOverview() {
           {/* Location Selector */}
           <div className="flex gap-2 items-center">
             <label className="text-sm font-medium text-gray-700">Location:</label>
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-md hover:border-gray-400 transition">
-              <Package size={16} className="text-gray-600" />
-              <span className="text-sm font-medium">{selectedLocation}</span>
-              <ChevronDown size={16} className="text-gray-400" />
-            </button>
+            <div className="relative">
+              <Package size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
+              <select
+                value={selectedLocationId ?? ''}
+                onChange={(event) => setSelectedLocationId(event.target.value ? Number(event.target.value) : null)}
+                className="rounded-md border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm"
+                aria-label="Inventory location"
+              >
+                {locations.length === 0 && <option value="">No locations available</option>}
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>{location.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
           </div>
         </div>
       </div>
@@ -167,18 +200,14 @@ export function InventoryOverview() {
 
       {/* Summary Cards */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <p className="text-sm text-gray-600 mb-1">Total Products</p>
             <p className="text-3xl font-bold text-gray-900">{loading ? '—' : total}</p>
           </div>
-          <div className="bg-white rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-            <p className="text-sm text-yellow-700 font-medium mb-1">⚠ Low Stock</p>
-            <p className="text-3xl font-bold text-yellow-700">{loading ? '—' : products.filter((p) => p.status === 'low').length}</p>
-          </div>
           <div className="bg-white rounded-lg border border-red-200 bg-red-50 p-4">
             <p className="text-sm text-red-700 font-medium mb-1">🚫 Out of Stock</p>
-            <p className="text-3xl font-bold text-red-700">{loading ? '—' : products.filter((p) => p.status === 'out').length}</p>
+            <p className="text-3xl font-bold text-red-700">{loading ? '—' : outOfStockCount}</p>
           </div>
         </div>
       </div>
@@ -186,16 +215,19 @@ export function InventoryOverview() {
       {/* Quick Actions */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex gap-3 flex-wrap sm:flex-nowrap">
-          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
+          <button onClick={onAddProduct} className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
             <Plus size={18} />
             <span className="hidden sm:inline">Add Product</span>
             <span className="sm:hidden">Add</span>
           </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
+          <button onClick={onCountStock} className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
             Count Stock
           </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
+          <button onClick={onImportCsv} className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
             Import CSV
+          </button>
+          <button onClick={onOpenOperations} className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm h-12 flex-1 sm:flex-initial">
+            Stock & history
           </button>
         </div>
       </div>
@@ -242,7 +274,7 @@ export function InventoryOverview() {
                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Product</th>
                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">SKU</th>
                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
-                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Price</th>
+                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Price (major units)</th>
                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Stock</th>
                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Status</th>
                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Last Updated</th>
@@ -255,14 +287,14 @@ export function InventoryOverview() {
                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
                        <td className="px-4 py-3 text-sm text-gray-600 font-mono">{product.sku}</td>
                        <td className="px-4 py-3 text-sm text-gray-600">{product.category || '—'}</td>
-                       <td className="px-4 py-3 text-sm text-gray-900 text-right">{product.price} ZWD</td>
+                       <td className="px-4 py-3 text-sm text-gray-900 text-right">{Number(product.price).toFixed(2)}</td>
                        <td className="px-4 py-3 text-sm font-bold text-center text-gray-900">{product.stock}</td>
                        <td className="px-4 py-3 text-center">
                          <StatusBadge status={product.status} />
                        </td>
                        <td className="px-4 py-3 text-sm text-gray-500">{product.lastUpdated}</td>
                        <td className="px-4 py-3 text-center">
-                         <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded hover:bg-gray-100 transition">
+                         <button onClick={() => onManageProduct?.(product.id)} aria-label={`Manage stock for ${product.name}`} className="inline-flex items-center gap-1 px-3 py-1.5 rounded hover:bg-gray-100 transition">
                            <Eye size={16} className="text-gray-600" />
                          </button>
                        </td>
@@ -287,7 +319,7 @@ export function InventoryOverview() {
                  <div className="grid grid-cols-2 gap-2 text-xs">
                    <div>
                      <p className="text-gray-500">Price</p>
-                     <p className="font-semibold text-gray-900">{product.price} ZWD</p>
+                     <p className="font-semibold text-gray-900">{Number(product.price).toFixed(2)}</p>
                    </div>
                    <div>
                      <p className="text-gray-500">Stock</p>
@@ -304,7 +336,7 @@ export function InventoryOverview() {
                      <p className="font-semibold text-gray-900">{product.lastUpdated}</p>
                    </div>
                  </div>
-                 <button className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-blue-300 text-blue-600 hover:bg-blue-50 transition font-medium text-sm h-10">
+                 <button onClick={() => onManageProduct?.(product.id)} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-blue-300 text-blue-600 hover:bg-blue-50 transition font-medium text-sm h-10">
                    <Eye size={16} />
                    View Details
                  </button>

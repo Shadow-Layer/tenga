@@ -20,14 +20,12 @@ http://localhost/
 
 You should see the Tenga Inventory POS login page.
 
-### 2. Login with Demo Credentials
+### 2. Create and sign in to the first administrator
 
-Use these pre-created test credentials:
-
-| Role    | Email                   | Password     |
-|---------|-------------------------|--------------|
-| Admin   | admin@teststore.com     | Admin123!    |
-| Cashier | cashier@teststore.com   | Cashier123!  |
+There are no shared demo accounts. On an empty installation, follow
+[`docs/INSTALLATION_BOOTSTRAP.md`](docs/INSTALLATION_BOOTSTRAP.md) to create a
+new organization and administrator using a unique, protected setup secret.
+Then sign in with the account you just created.
 
 ### 3. View the Quick Start Dashboard
 
@@ -78,10 +76,11 @@ Full OpenAPI 3.0 specification in JSON format
 All endpoints require Bearer token authentication:
 
 ```bash
-# Get authentication token
-curl -X POST http://localhost:8000/api/v1/auth/login \
+# Authenticate with the organization-specific owner account created during
+# first-install bootstrap. Never use credentials copied from an example.
+curl -X POST http://127.0.0.1:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@teststore.com","password":"Admin123!"}'
+  -d @/path/to/private-login-request.json
 
 # Use token in subsequent requests
 curl -H "Authorization: Bearer <TOKEN>" \
@@ -188,7 +187,9 @@ docker compose up --build -d
 
 ### Login fails with "401 Unauthorized"
 
-**Solution:** Verify credentials are correct (admin@teststore.com / Admin123!)
+**Solution:** Verify the email and password for an account created by your
+organization's administrator. Do not retry shared sample credentials; none are
+provisioned by the application.
 
 ### API returns 404 for endpoints
 

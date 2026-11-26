@@ -34,6 +34,12 @@ htmlcov/
 # Git
 .git/
 .gitignore
+.env.*
+!.env.example
+node_modules/
+.env.*
+!.env.example
+node_modules/
 .gitattributes
 
 # Project specific
@@ -48,6 +54,8 @@ build/
 # Documentation
 *.md
 docs/
+!docs/
+!docs/INITIAL_SETUP_WIZARD.md
 
 # Other
 .editorconfig

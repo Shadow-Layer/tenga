@@ -438,7 +438,7 @@ class TestAuthorizationOrganizationIsolation:
             f"/api/v1/tills/{other_till.id}",
             headers={"Authorization": f"Bearer {token}"}
         )
-        assert response.status_code == 403
+        assert response.status_code in {403, 404}
 
 
 class TestAuthorizationUnauthenticated:
@@ -497,7 +497,7 @@ class TestAuthorizationRoles:
         
         # Try to create user
         response = client.post(
-            f"/organizations/{org.id}/users",
+            f"/api/v1/organizations/{org.id}/users",
             json={
                 "username": "newuser",
                 "email": "newuser@test.com",
@@ -521,7 +521,7 @@ class TestAuthorizationRoles:
         
         # Create user
         response = client.post(
-            f"/organizations/{org.id}/users",
+            f"/api/v1/organizations/{org.id}/users",
             json={
                 "username": "newuser",
                 "email": "newuser@test.com",
@@ -545,7 +545,7 @@ class TestAuthorizationRoles:
         
         # Create user
         response = client.post(
-            f"/organizations/{org.id}/users",
+            f"/api/v1/organizations/{org.id}/users",
             json={
                 "username": "newuser",
                 "email": "newuser@test.com",

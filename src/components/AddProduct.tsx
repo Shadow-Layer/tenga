@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useAuthStore } from '../stores'
-import { productsAPI_v2 } from '../api'
+import { productsAPI_v2, taxRulesAPI, type TaxRule } from '../api'
 
 /**
  * Add/Edit Product Screen
@@ -24,6 +24,9 @@ interface ProductFormData {
   price: number | ''
   cost: number | ''
   barcode: string
+  unit_of_measure: string
+  minimum_stock_level: number | ''
+  tax_rule_id: number | ''
 }
 
 const initialFormData: ProductFormData = {
@@ -34,6 +37,9 @@ const initialFormData: ProductFormData = {
   price: '',
   cost: '',
   barcode: '',
+  unit_of_measure: 'each',
+  minimum_stock_level: 0,
+  tax_rule_id: '',
 }
 
 const categories = [
@@ -47,7 +53,12 @@ const categories = [
   'Other',
 ]
 
-export function AddProduct() {
+type Props = {
+  onCancel?: () => void
+  onCreated?: () => void
+}
+
+export function AddProduct({ onCancel, onCreated }: Props) {
   const user = useAuthStore((state) => state.user)
   
   const [formData, setFormData] = useState<ProductFormData>(initialFormData)
@@ -56,12 +67,24 @@ export function AddProduct() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [lastSubmitTime, setLastSubmitTime] = useState(0)
+  const [taxRules, setTaxRules] = useState<TaxRule[]>([])
+
+  useEffect(() => {
+    taxRulesAPI.list()
+      .then((response) => setTaxRules(response.data))
+      .catch(() => setError('Tax rules could not be loaded. Product tax will remain unassigned.'))
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'price' || name === 'cost' ? (value ? Number(value) : '') : value,
+      [name]:
+        name === 'price' || name === 'cost' || name === 'tax_rule_id' || name === 'minimum_stock_level'
+          ? value
+            ? Number(value)
+            : ''
+          : value,
     }))
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
@@ -73,8 +96,18 @@ export function AddProduct() {
 
     if (!formData.name.trim()) newErrors.name = 'Product name is required'
     if (!formData.sku.trim()) newErrors.sku = 'SKU is required'
-    if (formData.price === '') newErrors.price = 'Selling price is required'
-    if (formData.cost === '') newErrors.cost = 'Cost price is required'
+    if (formData.price === '' || formData.price <= 0) newErrors.price = 'Selling price must be greater than zero'
+    if (formData.cost !== '' && formData.cost < 0) newErrors.cost = 'Cost price cannot be negative'
+    if (!formData.unit_of_measure.trim() || formData.unit_of_measure.trim().length > 50) {
+      newErrors.unit_of_measure = 'Unit of measure is required (maximum 50 characters)'
+    }
+    if (
+      formData.minimum_stock_level === ''
+      || !Number.isInteger(formData.minimum_stock_level)
+      || formData.minimum_stock_level < 0
+    ) {
+      newErrors.minimum_stock_level = 'Minimum stock level must be a whole non-negative number'
+    }
     if (formData.price !== '' && formData.cost !== '' && formData.price < formData.cost) {
       newErrors.price = 'Selling price must be greater than cost price'
     }
@@ -106,18 +139,25 @@ export function AddProduct() {
         sku: formData.sku,
         name: formData.name,
         price: formData.price as number,
-        cost: formData.cost as number,
+        cost: formData.cost === '' ? undefined : formData.cost,
         barcode: formData.barcode || undefined,
+        unit_of_measure: formData.unit_of_measure.trim(),
+        minimum_stock_level: formData.minimum_stock_level as number,
         description: formData.description || undefined,
         category: formData.category || undefined,
         organization_id: user.organization_id,
+        tax_rule_id: formData.tax_rule_id || null,
       })
 
       setSuccess(true)
-      setTimeout(() => {
+      if (onCreated) {
+        onCreated()
+      } else {
+        setTimeout(() => {
         setFormData(initialFormData)
         setSuccess(false)
-      }, 3000)
+        }, 3000)
+      }
     } catch (err: any) {
       const status = err.response?.status
       const errorData = err.response?.data
@@ -150,7 +190,7 @@ export function AddProduct() {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <button className="p-1.5 rounded-lg hover:bg-gray-100 transition">
+            <button type="button" onClick={onCancel} aria-label="Back to inventory" className="p-1.5 rounded-lg hover:bg-gray-100 transition">
               <ChevronLeft size={20} className="text-gray-600" />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
@@ -266,7 +306,7 @@ export function AddProduct() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-900 mb-2">
-                    Selling Price (ZWD) *
+                    Selling Price (major units) *
                   </label>
                   <input
                     id="price"
@@ -275,7 +315,8 @@ export function AddProduct() {
                     value={formData.price}
                     onChange={handleChange}
                     placeholder="0"
-                    min="0"
+                    min="0.01"
+                    step="0.01"
                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 h-12 text-base ${
                       errors.price ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                     }`}
@@ -285,7 +326,7 @@ export function AddProduct() {
 
                 <div>
                   <label htmlFor="cost" className="block text-sm font-medium text-gray-900 mb-2">
-                    Cost Price (ZWD) *
+                    Cost Price (major units)
                   </label>
                   <input
                     id="cost"
@@ -295,12 +336,34 @@ export function AddProduct() {
                     onChange={handleChange}
                     placeholder="0"
                     min="0"
+                    step="0.01"
                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 h-12 text-base ${
                       errors.cost ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                     }`}
                   />
                   {errors.cost && <p className="text-sm text-red-600 mt-1">{errors.cost}</p>}
                 </div>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Tax</h2>
+                <label htmlFor="tax_rule_id" className="block text-sm font-medium text-gray-900 mb-2">
+                  Product tax rule
+                </label>
+                <select
+                  id="tax_rule_id"
+                  name="tax_rule_id"
+                  value={formData.tax_rule_id}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                >
+                  <option value="">No tax rule (tax omitted)</option>
+                  {taxRules.map((rule) => (
+                    <option key={rule.id} value={rule.id}>
+                      {rule.name} — {rule.rate}% {rule.tax_inclusive ? 'inclusive' : 'exclusive'}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {formData.price !== '' && formData.cost !== '' && (
@@ -317,6 +380,39 @@ export function AddProduct() {
             <h2 className="text-lg font-bold text-gray-900 mb-6">Inventory</h2>
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="unit_of_measure" className="block text-sm font-medium text-gray-900 mb-2">
+                    Unit of measure *
+                  </label>
+                  <input
+                    id="unit_of_measure"
+                    type="text"
+                    name="unit_of_measure"
+                    value={formData.unit_of_measure}
+                    onChange={handleChange}
+                    maxLength={50}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg h-12 text-base"
+                  />
+                  {errors.unit_of_measure && <p className="text-sm text-red-600 mt-1">{errors.unit_of_measure}</p>}
+                </div>
+                <div>
+                  <label htmlFor="minimum_stock_level" className="block text-sm font-medium text-gray-900 mb-2">
+                    Low-stock threshold *
+                  </label>
+                  <input
+                    id="minimum_stock_level"
+                    type="number"
+                    name="minimum_stock_level"
+                    value={formData.minimum_stock_level}
+                    onChange={handleChange}
+                    min="0"
+                    step="1"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg h-12 text-base"
+                  />
+                  {errors.minimum_stock_level && <p className="text-sm text-red-600 mt-1">{errors.minimum_stock_level}</p>}
+                </div>
                 <div>
                   <label htmlFor="barcode" className="block text-sm font-medium text-gray-900 mb-2">
                     Barcode
@@ -340,6 +436,7 @@ export function AddProduct() {
           <div className="flex gap-3 pt-4 flex-col sm:flex-row">
             <button
               type="button"
+              onClick={onCancel}
               className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium h-12 text-base"
             >
               Cancel

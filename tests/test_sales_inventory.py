@@ -130,13 +130,18 @@ class TestSaleService:
         till,
         user,
         product,
+        open_pos_session,
     ):
         """Test creating an online sale (immediately COMPLETED)."""
+        session = open_pos_session(user)
         sale = SaleService.create_sale(
             organization_id=org.id,
             till_id=till.id,
             cashier_id=user.id,
             payment_method="CASH",
+            amount_tendered="50.00",
+            till_session_id=session.id,
+            idempotency_key="service-cash-sale-01",
             items=[
                 {
                     "product_id": product.id,
@@ -159,13 +164,18 @@ class TestSaleService:
         till,
         user,
         product,
+        open_pos_session,
     ):
         """Test creating an offline sale (queued as PENDING)."""
+        session = open_pos_session(user)
+        product.price = 15.00
         sale = SaleService.create_sale(
             organization_id=org.id,
             till_id=till.id,
             cashier_id=user.id,
-            payment_method="CARD",
+            payment_method="CASH",
+            amount_tendered="30.00",
+            till_session_id=session.id,
             items=[
                 {
                     "product_id": product.id,
@@ -186,14 +196,19 @@ class TestSaleService:
         org,
         till,
         user,
+        open_pos_session,
     ):
         """Test that sale with no items is rejected."""
+        session = open_pos_session(user)
         with pytest.raises(ValueError, match="at least one item"):
             SaleService.create_sale(
                 organization_id=org.id,
                 till_id=till.id,
                 cashier_id=user.id,
                 payment_method="CASH",
+                amount_tendered="0.01",
+                till_session_id=session.id,
+                idempotency_key="service-empty-sale-01",
                 items=[],
                 db=db,
             )
@@ -204,14 +219,19 @@ class TestSaleService:
         org,
         till,
         user,
+        open_pos_session,
     ):
         """Test that sale with invalid product is rejected."""
+        session = open_pos_session(user)
         with pytest.raises(ValueError, match="Product .* not found"):
             SaleService.create_sale(
                 organization_id=org.id,
                 till_id=till.id,
                 cashier_id=user.id,
                 payment_method="CASH",
+                amount_tendered="10.00",
+                till_session_id=session.id,
+                idempotency_key="service-invalid-product",
                 items=[
                     {
                         "product_id": 99999,  # Invalid
@@ -230,14 +250,18 @@ class TestSaleService:
         user,
         product,
         location,
+        open_pos_session,
     ):
         """Test committing a pending sale generates movements."""
+        session = open_pos_session(user)
         # Create pending sale
         sale = SaleService.create_sale(
             organization_id=org.id,
             till_id=till.id,
             cashier_id=user.id,
             payment_method="CASH",
+            amount_tendered="30.00",
+            till_session_id=session.id,
             items=[
                 {
                     "product_id": product.id,
@@ -274,14 +298,18 @@ class TestSaleService:
         till,
         user,
         product,
+        open_pos_session,
     ):
         """Test that committing pending sale twice is idempotent."""
+        session = open_pos_session(user)
         # Create pending sale
         sale = SaleService.create_sale(
             organization_id=org.id,
             till_id=till.id,
             cashier_id=user.id,
             payment_method="CASH",
+            amount_tendered="20.00",
+            till_session_id=session.id,
             items=[
                 {
                     "product_id": product.id,
@@ -312,8 +340,10 @@ class TestSaleService:
         till,
         user,
         product,
+        open_pos_session,
     ):
         """Test that sale is allowed even if quantity exceeds stock (U006)."""
+        session = open_pos_session(user)
         # No stock movements recorded (stock is 0)
         # But sale should still be created
         sale = SaleService.create_sale(
@@ -321,6 +351,9 @@ class TestSaleService:
             till_id=till.id,
             cashier_id=user.id,
             payment_method="CASH",
+            amount_tendered="1000.00",
+            till_session_id=session.id,
+            idempotency_key="service-oversell-sale-01",
             items=[
                 {
                     "product_id": product.id,

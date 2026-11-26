@@ -41,6 +41,12 @@ def create_location(
         403: If user is not in the same organization
         404: Organization not found
     """
+    if current_user.role not in ("admin", "manager"):
+        raise HTTPException(
+            status_code=403,
+            detail="Only an admin or manager can create locations",
+        )
+
     # Check authorization
     if current_user.organization_id != location_data.organization_id:
         raise HTTPException(status_code=403, detail="Access denied to this organization")
@@ -139,4 +145,3 @@ def get_location(
         raise HTTPException(status_code=403, detail="Access denied to this location")
     
     return location
-

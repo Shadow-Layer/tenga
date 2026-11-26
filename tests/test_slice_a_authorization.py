@@ -7,15 +7,26 @@ and reject cross-organization and cross-location access.
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from jose import jwt
+import jwt
 from datetime import datetime, timedelta
 
 from src.main import app
+from src.database.config import get_db
 from src.models.entities import (
     User, Organization, Product, Location, InventoryMovement
 )
 from src.schemas.inventory import AdjustmentCreate
 from src.security.auth import create_access_token
+
+
+@pytest.fixture(autouse=True)
+def override_database_dependency(db: Session):
+    def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    app.dependency_overrides.clear()
 
 
 class TestAdjustmentAuthorizationAndIdentity:
@@ -63,8 +74,9 @@ class TestAdjustmentAuthorizationAndIdentity:
         # Create second user in same organization
         user2 = User(
             email="user2@test.com",
+            username="user2",
             full_name="User Two",
-            hashed_password="hash2",
+            password_hash="hash2",
             organization_id=user.organization_id,
             role="operator",
         )
@@ -85,7 +97,13 @@ class TestAdjustmentAuthorizationAndIdentity:
         db.refresh(product)
         
         # User makes an adjustment
-        token = create_access_token(data={"sub": user.email})
+        token = create_access_token(
+            user_id=user.id,
+            email=user.email,
+            organization_id=user.organization_id,
+            username=user.username,
+            role=user.role,
+        )
         response = client.post(
             "/api/v1/stock/stock/adjust",
             headers={"Authorization": f"Bearer {token}"},
@@ -98,7 +116,7 @@ class TestAdjustmentAuthorizationAndIdentity:
             }
         )
         
-        assert response.status_code == 200, f"Adjustment should succeed: {response.text}"
+        assert response.status_code == 201, f"Adjustment should succeed: {response.text}"
         
         # Verify the movement was recorded with user's ID, not user2
         movement = db.query(InventoryMovement).filter(
@@ -123,8 +141,9 @@ class TestAdjustmentAuthorizationAndIdentity:
         
         user_org1 = User(
             email="user@org1.com",
+            username="user_org1",
             full_name="User Org1",
-            hashed_password="hash",
+            password_hash="hash",
             organization_id=org1.id,
             role="operator",
         )
@@ -151,7 +170,13 @@ class TestAdjustmentAuthorizationAndIdentity:
         db.commit()
         db.refresh(location_org2)
         
-        token = create_access_token(data={"sub": user_org1.email})
+        token = create_access_token(
+            user_id=user_org1.id,
+            email=user_org1.email,
+            organization_id=user_org1.organization_id,
+            username=user_org1.username,
+            role=user_org1.role,
+        )
         
         # User from org1 attempts adjustment at location in org2
         # Client request might include org2.id, but backend should use org1 from JWT
@@ -183,8 +208,9 @@ class TestAdjustmentAuthorizationAndIdentity:
         
         user_org1 = User(
             email="user@org1.com",
+            username="user_org1",
             full_name="User",
-            hashed_password="hash",
+            password_hash="hash",
             organization_id=org1.id,
             role="operator",
         )
@@ -211,7 +237,13 @@ class TestAdjustmentAuthorizationAndIdentity:
         db.commit()
         db.refresh(location_org2)
         
-        token = create_access_token(data={"sub": user_org1.email})
+        token = create_access_token(
+            user_id=user_org1.id,
+            email=user_org1.email,
+            organization_id=user_org1.organization_id,
+            username=user_org1.username,
+            role=user_org1.role,
+        )
         
         # Attempt to adjust at location in different org
         response = client.post(
@@ -296,7 +328,13 @@ class TestMovementEndpointAuthorization:
         db.refresh(movement_user)
         db.refresh(movement_org2)
         
-        token = create_access_token(data={"sub": user.email})
+        token = create_access_token(
+            user_id=user.id,
+            email=user.email,
+            organization_id=user.organization_id,
+            username=user.username,
+            role=user.role,
+        )
         response = client.get(
             "/api/v1/stock/stock/movements",
             headers={"Authorization": f"Bearer {token}"}
@@ -315,7 +353,7 @@ class TestMovementEndpointAuthorization:
         """Test that movement detail requires authentication."""
         client = TestClient(app)
         
-        response = client.get("/api/v1/stock/movements/1")
+        response = client.get("/api/v1/stock/stock/movements/1")
         assert response.status_code in [401, 403], "Unauthenticated movement detail should be rejected"
 
     def test_get_movement_detail_denied_for_other_org(self, db: Session, user: User):
@@ -331,8 +369,9 @@ class TestMovementEndpointAuthorization:
         # Create user in org2
         user2 = User(
             email="user@org2.com",
+            username="user_org2",
             full_name="User Org2",
-            hashed_password="hash",
+            password_hash="hash",
             organization_id=org2.id,
             role="operator",
         )
@@ -367,9 +406,15 @@ class TestMovementEndpointAuthorization:
         db.refresh(movement_org2)
         
         # User from first org attempts to view movement from org2
-        token = create_access_token(data={"sub": user.email})
+        token = create_access_token(
+            user_id=user.id,
+            email=user.email,
+            organization_id=user.organization_id,
+            username=user.username,
+            role=user.role,
+        )
         response = client.get(
-            f"/api/v1/stock/movements/{movement_org2.id}",
+            f"/api/v1/stock/stock/movements/{movement_org2.id}",
             headers={"Authorization": f"Bearer {token}"}
         )
         

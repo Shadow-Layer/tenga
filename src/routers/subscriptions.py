@@ -45,6 +45,7 @@ def create_subscription(
     org_id: int,
     request: SubscriptionCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> SubscriptionResponse:
     """Create a new subscription for an organization.
     
@@ -60,6 +61,8 @@ def create_subscription(
         404: If organization not found
         409: If subscription already exists for org
     """
+    _require_admin_for_org(current_user, org_id)
+
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -113,6 +116,7 @@ def create_subscription(
 def get_subscription(
     org_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> SubscriptionResponse:
     """Get subscription for an organization.
     
@@ -126,6 +130,8 @@ def get_subscription(
     Raises:
         404: If organization or subscription not found
     """
+    _require_org_access(current_user, org_id)
+
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -155,6 +161,7 @@ def renew_subscription(
     org_id: int,
     request: RenewalRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> SubscriptionResponse:
     """Renew a subscription.
     
@@ -170,6 +177,8 @@ def renew_subscription(
         404: If organization or subscription not found
         400: If subscription cannot be renewed
     """
+    _require_admin_for_org(current_user, org_id)
+
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -221,6 +230,7 @@ def renew_subscription(
 def get_subscription_state(
     org_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> SubscriptionStateResponse:
     """Get subscription state details.
     
@@ -234,6 +244,8 @@ def get_subscription_state(
     Raises:
         404: If organization or subscription not found
     """
+    _require_org_access(current_user, org_id)
+
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -292,3 +304,14 @@ def _compute_expiry_date(start_date: datetime, term: str) -> datetime:
         return start_date + timedelta(days=365)
     else:
         raise ValueError(f"Invalid subscription term: {term}")
+
+
+def _require_org_access(current_user: User, org_id: int) -> None:
+    if current_user.organization_id != org_id:
+        raise HTTPException(status_code=403, detail="Access denied to this organization")
+
+
+def _require_admin_for_org(current_user: User, org_id: int) -> None:
+    _require_org_access(current_user, org_id)
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only an admin can manage subscriptions")

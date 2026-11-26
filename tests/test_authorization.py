@@ -62,7 +62,7 @@ class TestAuthorizationFramework:
         # This test already passes from Phase B
         # Just verify it works here as well
         response = authenticated_client.post(
-            "/api/v1/stock/adjust",
+            "/api/v1/stock/stock/adjust",
             json={
                 "product_id": 1,
                 "location_id": 1,

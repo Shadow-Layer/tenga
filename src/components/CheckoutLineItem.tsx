@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { usePOSStore } from '../stores'
+import { formatMinorUnits } from '../money'
 
 interface LineItemData {
   productId: number
@@ -10,9 +11,10 @@ interface LineItemData {
 
 interface CheckoutLineItemProps {
   item: LineItemData
+  disabled?: boolean
 }
 
-export default function CheckoutLineItem({ item }: CheckoutLineItemProps) {
+export default function CheckoutLineItem({ item, disabled = false }: CheckoutLineItemProps) {
   const { updateQuantity, removeFromCart } = usePOSStore()
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
 
@@ -35,7 +37,7 @@ export default function CheckoutLineItem({ item }: CheckoutLineItemProps) {
         <div className="flex-1">
           <h3 className="font-medium text-gray-900">{item.name}</h3>
           <p className="text-sm text-gray-600">
-            ${(item.unitPrice / 100).toFixed(2)} × {item.quantity}
+            {formatMinorUnits(item.unitPrice)} × {item.quantity}
           </p>
         </div>
 
@@ -43,7 +45,7 @@ export default function CheckoutLineItem({ item }: CheckoutLineItemProps) {
         <div className="flex items-center gap-1">
           <button
             onClick={() => handleQuantityChange(item.quantity - 1)}
-            disabled={item.quantity === 1}
+            disabled={disabled || item.quantity === 1}
             className="px-2 py-1 border rounded text-gray-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             −
@@ -54,10 +56,12 @@ export default function CheckoutLineItem({ item }: CheckoutLineItemProps) {
             max="9999"
             value={item.quantity}
             onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+            disabled={disabled}
             className="w-12 text-center border rounded py-1 text-sm"
           />
           <button
             onClick={() => handleQuantityChange(item.quantity + 1)}
+            disabled={disabled}
             className="px-2 py-1 border rounded text-gray-600 hover:bg-white"
           >
             +
@@ -66,12 +70,13 @@ export default function CheckoutLineItem({ item }: CheckoutLineItemProps) {
 
         {/* Line total */}
         <div className="text-right min-w-20">
-          <p className="font-semibold text-gray-900">${(lineTotal / 100).toFixed(2)}</p>
+          <p className="font-semibold text-gray-900">{formatMinorUnits(lineTotal)}</p>
         </div>
 
         {/* Remove button */}
         <button
           onClick={() => setShowRemoveConfirm(true)}
+          disabled={disabled}
           className="px-3 py-1 text-red-600 hover:bg-red-50 rounded"
         >
           Remove
@@ -91,12 +96,14 @@ export default function CheckoutLineItem({ item }: CheckoutLineItemProps) {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowRemoveConfirm(false)}
+                disabled={disabled}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRemove}
+                disabled={disabled}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Remove

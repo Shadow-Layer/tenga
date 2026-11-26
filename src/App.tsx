@@ -1,500 +1,857 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import axios from 'axios'
 import './index.css'
-import AdminQuickStart from './components/AdminQuickStart'
+import AddProduct from './components/AddProduct'
+import Checkout from './components/Checkout'
+import { InventoryOverview } from './components/InventoryOverview'
+import InventoryOperations from './components/InventoryOperations'
+import { OfflineSyncStatus } from './components/OfflineSyncStatus'
+import EmployeeTillAssignments from './components/EmployeeTillAssignments'
+import SetupWizard from './components/SetupWizard'
+import {
+  locationsAPI,
+  productsAPI_v2,
+  tillsAPI,
+  type Till,
+  type TillSession,
+  type User,
+} from './api'
+import { useAppContextStore, useAuthStore } from './stores'
+import { getOfflineOperationQueue } from './offline/runtime'
 
-interface Step {
-  number: number
-  title: string
-  description: string
-  action?: {
-    text: string
-    href: string
-    target?: string
+type Screen = 'setup' | 'employees' | 'inventory' | 'operations' | 'product' | 'pos'
+
+const SCREENS: Array<{ id: Exclude<Screen, 'setup' | 'employees'>; label: string }> = [
+  { id: 'inventory', label: 'Inventory' },
+  { id: 'operations', label: 'Stock operations' },
+  { id: 'product', label: 'Add product' },
+  { id: 'pos', label: 'Point of sale' },
+]
+
+type TillAvailability = {
+  assignedTills: Till[]
+  openableTills: Till[]
+  openTills: Till[]
+  openSessionIds: Record<number, number>
+  busyTills: Till[]
+  managerOpenSessions: Array<{ till: Till; session: TillSession }>
+  statusCheckFailed: boolean
+}
+
+async function fetchAllTills(
+  fetchPage: (skip: number) => Promise<{ data: { items: Till[]; total: number } }>,
+): Promise<Till[]> {
+  const tills: Till[] = []
+  let total = 0
+  do {
+    const response = await fetchPage(tills.length)
+    if (response.data.items.length === 0 && tills.length < response.data.total) {
+      throw new Error('Till list changed while loading. Refresh and retry.')
+    }
+    tills.push(...response.data.items)
+    total = response.data.total
+  } while (tills.length < total)
+  return tills
+}
+
+async function fetchTillAvailability(user: User): Promise<TillAvailability> {
+  const [assignedResponse, allTillsResponse] = await Promise.all([
+    fetchAllTills((skip) => tillsAPI.assigned(skip, 100)),
+    user.role === 'admin' || user.role === 'manager'
+      ? fetchAllTills((skip) => tillsAPI.list(user.organization_id, undefined, skip, 100))
+      : Promise.resolve(null),
+  ])
+  const assignedTills = assignedResponse
+  const tillsToCheck = allTillsResponse ?? assignedTills
+  const assignedTillIds = new Set(assignedTills.map((till) => till.id))
+  const checks: Array<{
+    till: Till
+    status: TillSession | null
+    failed: boolean
+  }> = []
+  for (let offset = 0; offset < tillsToCheck.length; offset += 20) {
+    const batch = await Promise.all(tillsToCheck.slice(offset, offset + 20).map(async (till) => {
+      try {
+        return { till, status: (await tillsAPI.getStatus(till.id)).data, failed: false }
+      } catch {
+        return { till, status: null, failed: true }
+      }
+    }))
+    checks.push(...batch)
   }
-  example?: {
-    endpoint: string
-    method: string
-    body?: string
+  const ownOpenSessions = checks.flatMap(({ till, status }) =>
+    assignedTillIds.has(till.id)
+    && status?.session_state === 'OPEN'
+    && status.operator_id === user.id
+    && status.session_id !== null
+      ? [{ till, sessionId: status.session_id }]
+      : [],
+  )
+  const openSessionIds: Record<number, number> = {}
+  for (const { till, sessionId } of ownOpenSessions) {
+    openSessionIds[till.id] = sessionId
+  }
+
+  return {
+    assignedTills,
+    openableTills: checks
+      .filter(({ till, status }) =>
+        assignedTillIds.has(till.id) && status !== null && status.session_state !== 'OPEN',
+      )
+      .map(({ till }) => till),
+    openTills: ownOpenSessions.map(({ till }) => till),
+    openSessionIds,
+    busyTills: checks
+      .filter(({ till, status }) =>
+        assignedTillIds.has(till.id) && status?.session_state === 'OPEN' && status.operator_id !== user.id,
+      )
+      .map(({ till }) => till),
+    managerOpenSessions: checks.flatMap(({ till, status }) =>
+      status?.session_state === 'OPEN' && status.session_id !== null
+        ? [{ till, session: status }]
+        : [],
+    ),
+    statusCheckFailed: checks.some(({ failed, status }) =>
+      failed || (status?.session_state === 'OPEN' && status.session_id === null),
+    ),
   }
 }
 
-const QUICK_START_STEPS: Step[] = [
-  {
-    number: 1,
-    title: 'Create a Location',
-    description: 'Set up a physical store location where you\'ll manage inventory and tills.',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Locations/add_location_api_v1_locations_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/locations',
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'Downtown Store',
-        code: 'LOC001',
-        description: 'Main retail location',
-        organization_id: 1
-      }, null, 2)
-    }
-  },
-  {
-    number: 2,
-    title: 'Create Products',
-    description: 'Add items you want to sell (Coffee, Tea, etc.).',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Products/add_product_api_v1_products_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/products',
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'Premium Coffee',
-        sku: 'COFFEE-001',
-        category: 'Beverages',
-        price: 450,
-        cost: 200,
-        organization_id: 1
-      }, null, 2)
-    }
-  },
-  {
-    number: 3,
-    title: 'Add Stock to Location',
-    description: 'Set initial inventory levels at your location.',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Inventory/adjust_stock_api_v1_stock_stock_adjust_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/stock/stock/adjust',
-      method: 'POST',
-      body: JSON.stringify({
-        product_id: 1,
-        location_id: 1,
-        quantity: 100,
-        reason: 'initial_stock',
-        recorded_by_id: 2
-      }, null, 2)
-    }
-  },
-  {
-    number: 4,
-    title: 'Create a Till',
-    description: 'Set up a cash register at your location.',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Tills/add_till_api_v1_tills_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/tills',
-      method: 'POST',
-      body: JSON.stringify({
-        location_id: 1,
-        code: 'TILL001',
-        name: 'Front Register',
-        is_online: true
-      }, null, 2)
-    }
-  },
-  {
-    number: 5,
-    title: 'Open Till Session',
-    description: 'Start a till session with opening balance (in cents).',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Tills/open_till_session_api_v1_tills__till_id__open_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/tills/{till_id}/open',
-      method: 'POST',
-      body: JSON.stringify({
-        user_id: 2,
-        opening_balance_cents: 50000
-      }, null, 2)
-    }
-  },
-  {
-    number: 6,
-    title: 'Create a Sale',
-    description: 'Process a transaction with items and payment method.',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Sales/add_sale_api_v1_sales_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/sales',
-      method: 'POST',
-      body: JSON.stringify({
-        till_id: 1,
-        cashier_id: 2,
-        payment_method: 'cash',
-        items: [
-          {
-            product_id: 1,
-            quantity: 2,
-            unit_price: 450
-          }
-        ],
-        is_offline: false,
-        notes: 'Customer purchase'
-      }, null, 2)
-    }
-  },
-  {
-    number: 7,
-    title: 'Verify Stock Deduction',
-    description: 'Check that inventory was automatically updated after the sale.',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Inventory/get_location_stock_api_v1_stock_locations__location_id__stock_get',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'GET /api/v1/stock/locations/{location_id}/stock',
-      method: 'GET'
-    }
-  },
-  {
-    number: 8,
-    title: 'Close Till Session',
-    description: 'Finalize till session with closing balance.',
-    action: {
-      text: 'Open in Swagger UI',
-      href: '/docs#/Tills/close_till_session_api_v1_tills__till_id__close_post',
-      target: '_blank'
-    },
-    example: {
-      endpoint: 'POST /api/v1/tills/{till_id}/close',
-      method: 'POST',
-      body: JSON.stringify({
-        user_id: 2,
-        closing_amount_cents: 51250,
-        notes: 'End of shift'
-      }, null, 2)
-    }
+function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError<{ detail?: string }>(error)) {
+    return error.response?.data?.detail ?? error.message
   }
-]
+  return error instanceof Error ? error.message : 'The till operation failed.'
+}
 
-function StepCard({ step, isExpanded, onToggle }: { step: Step; isExpanded: boolean; onToggle: () => void }) {
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full p-4 bg-gray-50 hover:bg-gray-100 flex items-start justify-between text-left"
-      >
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0">
-            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-600 text-white font-bold text-lg">
-              {step.number}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">{step.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{step.description}</p>
-          </div>
-        </div>
-        <span className="text-gray-400 text-2xl ml-4">{isExpanded ? '−' : '+'}</span>
-      </button>
-
-      {isExpanded && (
-        <div className="border-t bg-white p-4 space-y-4">
-          {step.example && (
-            <div className="bg-gray-50 rounded p-3">
-              <p className="text-sm font-mono text-gray-700 mb-2">
-                {step.example.method} {step.example.endpoint}
-              </p>
-              {step.example.body && (
-                <pre className="bg-white border rounded p-2 text-xs overflow-auto max-h-48">
-                  <code>{step.example.body}</code>
-                </pre>
-              )}
-            </div>
-          )}
-
-          {step.action && (
-            <a
-              href={step.action.href}
-              target={step.action.target || '_self'}
-              rel={step.action.target === '_blank' ? 'noopener noreferrer' : undefined}
-              className="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-sm font-medium"
-            >
-              {step.action.text} →
-            </a>
-          )}
-        </div>
-      )}
-    </div>
+async function cacheOpenTillSession(user: User, availability: TillAvailability): Promise<void> {
+  const queue = getOfflineOperationQueue()
+  const entry = Object.entries(availability.openSessionIds).find(([tillId]) =>
+    availability.openTills.some((till) => till.id === Number(tillId)),
   )
+  if (!entry) {
+    await queue.clearOpenTillSession(user.organization_id, user.id)
+    return
+  }
+  const [tillId, sessionId] = entry
+  const till = availability.openTills.find((item) => item.id === Number(tillId))
+  if (!till) throw new Error('The active till session no longer matches an assigned till.')
+  await queue.saveOpenTillSession({
+    userId: user.id,
+    organizationId: user.organization_id,
+    sessionId,
+    till,
+    cachedAt: Date.now(),
+  })
 }
 
 export default function App() {
+  const user = useAuthStore((state) => state.user)
+  const setAuth = useAuthStore((state) => state.setAuth)
+  const logout = useAuthStore((state) => state.logout)
+  const selectedTill = useAppContextStore((state) => state.selectedTill)
+  const setSelectedTill = useAppContextStore((state) => state.setSelectedTill)
+  const clearContext = useAppContextStore((state) => state.clearContext)
+  const [authInitialized, setAuthInitialized] = useState(false)
+  const [screen, setScreen] = useState<Screen>('inventory')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [status, setStatus] = useState<string | null>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [expandedStep, setExpandedStep] = useState<number | null>(1)
+  const [loginMessage, setLoginMessage] = useState('')
+  const [loginError, setLoginError] = useState(false)
+  const [loginLoading, setLoginLoading] = useState(false)
+  const [assignedTills, setAssignedTills] = useState<Till[]>([])
+  const [openableTills, setOpenableTills] = useState<Till[]>([])
+  const [busyTills, setBusyTills] = useState<Till[]>([])
+  const [availableTills, setAvailableTills] = useState<Till[]>([])
+  const [openSessionIds, setOpenSessionIds] = useState<Record<number, number>>({})
+  const [managerOpenSessions, setManagerOpenSessions] = useState<
+    Array<{ till: Till; session: TillSession }>
+  >([])
+  const [managerCloseTillId, setManagerCloseTillId] = useState<number | ''>('')
+  const [openTillId, setOpenTillId] = useState<number | ''>('')
+  const [openingBalance, setOpeningBalance] = useState('0')
+  const [closingBalance, setClosingBalance] = useState('0')
+  const [closingNotes, setClosingNotes] = useState('')
+  const [managerClosingBalance, setManagerClosingBalance] = useState('0')
+  const [managerClosingNotes, setManagerClosingNotes] = useState('')
+  const [tillActionMessage, setTillActionMessage] = useState('')
+  const [tillActionError, setTillActionError] = useState('')
+  const [tillActionLoading, setTillActionLoading] = useState(false)
+  const [tillsLoading, setTillsLoading] = useState(false)
+  const [tillsError, setTillsError] = useState('')
+  const [usingCachedTillSession, setUsingCachedTillSession] = useState(false)
+  const [operationsView, setOperationsView] = useState<'receipt' | 'count' | 'import' | 'history'>('receipt')
+  const [operationsProductId, setOperationsProductId] = useState<number | undefined>()
 
-  // Check if user is already logged in on mount
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
-    const storedUser = localStorage.getItem('user')
-    if (token && storedUser) {
-      setIsLoggedIn(true)
-      setUser(JSON.parse(storedUser))
-    }
+    useAuthStore.getState().initFromStorage()
+    setAuthInitialized(true)
   }, [])
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setStatus('Logging in...')
+  useEffect(() => {
+    if (!user) {
+      setAssignedTills([])
+      setOpenableTills([])
+      setBusyTills([])
+      setAvailableTills([])
+      setOpenSessionIds({})
+      setManagerOpenSessions([])
+      setManagerCloseTillId('')
+      setSelectedTill(null)
+      setTillsError('')
+      setUsingCachedTillSession(false)
+      return
+    }
+
+    const authenticatedUser = user
+    let active = true
+    setTillsLoading(true)
+    setTillsError('')
+
+    async function loadAvailableTills() {
+      try {
+        const availability = await fetchTillAvailability(authenticatedUser)
+        if (!active) return
+        setUsingCachedTillSession(false)
+        setAssignedTills(availability.assignedTills)
+        setOpenableTills(availability.openableTills)
+        setBusyTills(availability.busyTills)
+        setAvailableTills(availability.openTills)
+        setOpenSessionIds(availability.openSessionIds)
+        setManagerOpenSessions(availability.managerOpenSessions)
+        setManagerCloseTillId((current) =>
+          availability.managerOpenSessions.some(({ till }) => till.id === current)
+            ? current
+            : availability.managerOpenSessions[0]?.till.id ?? '',
+        )
+        setOpenTillId((current) =>
+          availability.openableTills.some((till) => till.id === current)
+            ? current
+            : availability.openableTills[0]?.id ?? '',
+        )
+        const currentTill = useAppContextStore.getState().selectedTill
+        setSelectedTill(
+          availability.openTills.find((till) => till.id === currentTill?.id)
+            ?? availability.openTills[0]
+            ?? null,
+        )
+        if (availability.statusCheckFailed) {
+          setTillsError('Some till sessions could not be verified. Only verified open sessions can be used.')
+        }
+        try {
+          await cacheOpenTillSession(authenticatedUser, availability)
+        } catch (error) {
+          if (active) {
+            setTillsError(`Till sessions loaded, but offline recovery could not be saved: ${getApiErrorMessage(error)}`)
+          }
+        }
+      } catch {
+        if (!active) return
+        try {
+          const cached = await getOfflineOperationQueue().getOpenTillSession(
+            authenticatedUser.organization_id,
+            authenticatedUser.id,
+          )
+          if (!active) return
+          if (cached) {
+            setUsingCachedTillSession(true)
+            setAssignedTills([cached.till])
+            setOpenableTills([])
+            setBusyTills([])
+            setAvailableTills([cached.till])
+            setOpenSessionIds({ [cached.till.id]: cached.sessionId })
+            setManagerOpenSessions([])
+            setManagerCloseTillId('')
+            setSelectedTill(cached.till)
+            setTillsError('Using the last verified open till session from this device. The server must confirm any pending sale after reconnection.')
+            return
+          }
+        } catch (error) {
+          if (active) {
+            setTillsError(`Till sessions and cached session recovery are unavailable: ${getApiErrorMessage(error)}`)
+          }
+          return
+        }
+        setAssignedTills([])
+        setOpenableTills([])
+        setBusyTills([])
+        setAvailableTills([])
+        setOpenSessionIds({})
+        setManagerOpenSessions([])
+        setManagerCloseTillId('')
+        setSelectedTill(null)
+        setTillsError('Till sessions could not be loaded and no verified session is cached on this device.')
+      } finally {
+        if (active) setTillsLoading(false)
+      }
+    }
+
+    void loadAvailableTills()
+    return () => {
+      active = false
+    }
+  }, [user?.id, user?.organization_id, setSelectedTill])
+
+  function applyTillAvailability(availability: TillAvailability) {
+    setUsingCachedTillSession(false)
+    setAssignedTills(availability.assignedTills)
+    setOpenableTills(availability.openableTills)
+    setBusyTills(availability.busyTills)
+    setAvailableTills(availability.openTills)
+    setOpenSessionIds(availability.openSessionIds)
+    setManagerOpenSessions(availability.managerOpenSessions)
+    setManagerCloseTillId((current) =>
+      availability.managerOpenSessions.some(({ till }) => till.id === current)
+        ? current
+        : availability.managerOpenSessions[0]?.till.id ?? '',
+    )
+    setOpenTillId((current) =>
+      availability.openableTills.some((till) => till.id === current)
+        ? current
+        : availability.openableTills[0]?.id ?? '',
+    )
+    const currentTill = useAppContextStore.getState().selectedTill
+    setSelectedTill(
+      availability.openTills.find((till) => till.id === currentTill?.id)
+        ?? availability.openTills[0]
+        ?? null,
+    )
+    setTillsError(
+      availability.statusCheckFailed
+        ? 'Some till sessions could not be verified. Only verified open sessions can be used.'
+        : '',
+    )
+    if (user) {
+      void cacheOpenTillSession(user, availability).catch((error) => {
+        setTillsError(`Till state changed, but offline recovery could not be saved: ${getApiErrorMessage(error)}`)
+      })
+    }
+  }
+
+  async function refreshTillAvailabilitySafely(currentUser: User) {
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      applyTillAvailability(await fetchTillAvailability(currentUser))
+    } catch {
+      setOpenableTills([])
+      setBusyTills([])
+      setAvailableTills([])
+      setOpenSessionIds({})
+      setManagerOpenSessions([])
+      setManagerCloseTillId('')
+      setOpenTillId('')
+      setSelectedTill(null)
+      setTillsError('Till session state could not be verified. Checkout is disabled until status can be refreshed.')
+    }
+  }
+
+  async function handleOpenTill(event: FormEvent) {
+    event.preventDefault()
+    if (!user || openTillId === '') return
+
+    setTillActionLoading(true)
+    setTillActionError('')
+    setTillActionMessage('')
+    try {
+      await tillsAPI.openSession(openTillId, Number(openingBalance))
+      applyTillAvailability(await fetchTillAvailability(user))
+      setOpeningBalance('0')
+      setTillActionMessage('Till session opened. You can now complete sales.')
+    } catch (error) {
+      setTillActionError(getApiErrorMessage(error))
+      await refreshTillAvailabilitySafely(user)
+    } finally {
+      setTillActionLoading(false)
+    }
+  }
+
+  async function submitTillClose(
+    tillId: number,
+    sessionId: number,
+    countedBalance: string,
+    notes: string,
+  ) {
+    if (!user) return
+    setTillActionLoading(true)
+    setTillActionError('')
+    setTillActionMessage('')
+    try {
+      const response = await tillsAPI.closeSession(
+        tillId,
+        sessionId,
+        Number(countedBalance),
+        notes.trim() || undefined,
+      )
+      const reconciliation = response.data
+      applyTillAvailability(await fetchTillAvailability(user))
+      setClosingBalance((current) => tillId === activeTill?.id ? '0' : current)
+      setClosingNotes((current) => tillId === activeTill?.id ? '' : current)
+      setManagerClosingBalance((current) => tillId === managerCloseTillId ? '0' : current)
+      setManagerClosingNotes((current) => tillId === managerCloseTillId ? '' : current)
+      setTillActionMessage(
+        `Till closed. Expected ${reconciliation.currency_code} ${reconciliation.expected_closing_balance.toFixed(2)}, counted ${reconciliation.closing_balance.toFixed(2)}, variance ${reconciliation.cash_variance.toFixed(2)}.`,
+      )
+    } catch (error) {
+      setTillActionError(getApiErrorMessage(error))
+      await refreshTillAvailabilitySafely(user)
+    } finally {
+      setTillActionLoading(false)
+    }
+  }
+
+  async function handleCloseTill(event: FormEvent) {
+    event.preventDefault()
+    if (!activeTill) return
+    const sessionId = openSessionIds[activeTill.id]
+    if (sessionId !== undefined) {
+      await submitTillClose(activeTill.id, sessionId, closingBalance, closingNotes)
+    }
+  }
+
+  async function handleManagerCloseTill(event: FormEvent) {
+    event.preventDefault()
+    const selectedSession = managerClosableSessions.find(
+      ({ till }) => till.id === selectedManagerCloseTillId,
+    )?.session
+    if (selectedManagerCloseTillId === '' || selectedSession?.session_id == null) return
+    await submitTillClose(
+      selectedManagerCloseTillId,
+      selectedSession.session_id,
+      managerClosingBalance,
+      managerClosingNotes,
+    )
+  }
+
+  useEffect(() => {
+    if (!user) return
+    const organizationId = user.organization_id
+    let active = true
+    async function cacheOfflineChoices() {
+      try {
+        const [products, locations] = await Promise.all([
+          (async () => {
+            const result = []
+            let skip = 0
+            let total = 0
+            do {
+              const page = await productsAPI_v2.list({
+                organization_id: organizationId,
+                include_inactive: false,
+                skip,
+                limit: 100,
+              })
+              result.push(...page.data.items)
+              total = page.data.total
+              skip += page.data.items.length
+            } while (skip < total && skip > 0)
+            return result
+          })(),
+          (async () => {
+            const page = await locationsAPI.list(organizationId, 0, 100)
+            return page.data.items
+          })(),
+        ])
+        if (!active) return
+        await getOfflineOperationQueue().saveCatalog({
+          organizationId,
+          cachedAt: Date.now(),
+          products: products.map(({ id, name, sku, unit_of_measure }) => ({
+            id, name, sku, unit_of_measure: unit_of_measure || 'each',
+          })),
+          locations: locations.map(({ id, name, code }) => ({ id, name, code: code || '' })),
+        })
+      } catch {
+        // Keep the last tenant-scoped catalog cache for offline inventory capture.
+      }
+    }
+    void cacheOfflineChoices()
+    return () => { active = false }
+  }, [user?.id, user?.organization_id])
+
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setLoginLoading(true)
+    setLoginMessage('')
+    setLoginError(false)
+
+    try {
+      const response = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-      if (!res.ok) {
-        const data = await res.json()
-        setStatus(`Login failed: ${data.detail || res.statusText}`)
-        return
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        const detail = typeof data.detail === 'string' ? data.detail : response.statusText
+        throw new Error(detail || 'Unable to sign in.')
       }
-      const data = await res.json()
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      setUser(data.user)
-      setIsLoggedIn(true)
-      setStatus('Login successful!')
-    } catch (err: any) {
-      setStatus(`Login error: ${err.message}`)
+
+      setAuth(data.user, data.access_token)
+      setScreen('inventory')
+      setLoginMessage('')
+    } catch (error) {
+      setLoginError(true)
+      setLoginMessage(error instanceof Error ? error.message : 'Unable to sign in. Please try again.')
+    } finally {
+      setLoginLoading(false)
     }
   }
 
   function handleLogout() {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('user')
-    setIsLoggedIn(false)
-    setUser(null)
+    logout()
+    clearContext()
+    setScreen('inventory')
     setEmail('')
     setPassword('')
-    setStatus(null)
   }
 
-  if (isLoggedIn && user) {
+  if (!authInitialized) {
+    return <main className="min-h-screen bg-gray-50 p-8 text-center text-gray-600">Restoring your session…</main>
+  }
+
+  if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">Tenga Inventory POS</h1>
-              <p className="text-sm text-gray-600">Point of Sale System for Inventory Management</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-            >
-              Logout
-            </button>
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+        <div className="mx-auto max-w-md">
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">Tenga Inventory POS</h1>
+            <p className="mt-2 text-sm text-gray-600">Sign in to manage inventory or use the point of sale.</p>
           </div>
-
-          {/* User Info Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-3">Welcome, {user.username}!</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
-                <p className="text-sm font-medium">{user.email}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Role</p>
-                <p className="text-sm font-medium">{user.role.toUpperCase()}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">User ID</p>
-                <p className="text-sm font-medium">{user.id}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Organization</p>
-                <p className="text-sm font-medium">Test Store</p>
-              </div>
+          <form onSubmit={handleLogin} className="space-y-4 rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="text-lg font-semibold text-gray-900">Sign in</h2>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+              <input
+                type="email"
+                autoComplete="username"
+                className="mt-1 w-full rounded border px-3 py-2"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+              <input
+                type="password"
+                autoComplete="current-password"
+                className="mt-1 w-full rounded border px-3 py-2"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </label>
+            <div className="flex items-center justify-between gap-4">
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60"
+              >
+                {loginLoading ? 'Signing in…' : 'Sign in'}
+              </button>
+              <a className="text-sm text-indigo-600 hover:underline" href="/docs" target="_blank" rel="noreferrer">
+                API docs
+              </a>
             </div>
-          </div>
-
-          {/* Quick Start Guide or Admin Tools */}
-          {user.role === 'admin' ? (
-            <div>
-              <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Quick Actions</h2>
-                <p className="text-gray-600">Run the 8-step quick setup directly from the dashboard (one-click forms).</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                {/* Admin component handles the quick actions */}
-                <AdminQuickStart user={user} />
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Quick Start: Till & Inventory Testing</h2>
-                <p className="text-gray-600">
-                  Follow these steps to set up your first location, add products, and process a sale.
-                  Each step includes the API endpoint and example request body.
-                </p>
-              </div>
-
-              {/* Steps */}
-              <div className="space-y-3">
-                {QUICK_START_STEPS.map((step) => (
-                  <StepCard
-                    key={step.number}
-                    step={step}
-                    isExpanded={expandedStep === step.number}
-                    onToggle={() => setExpandedStep(expandedStep === step.number ? null : step.number)}
-                  />
-                ))}
-              </div>
-
-              {/* Testing Checklist */}
-              <div className="mt-8 pt-8 border-t">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Testing Checklist</h3>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 p-4 rounded">
-                    <p className="font-semibold text-blue-900 mb-3">✓ Setup Phase</p>
-                    <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                      <li>Create Location</li>
-                      <li>Create 2 Products</li>
-                      <li>Add stock</li>
-                      <li>Create Till</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-green-50 p-4 rounded">
-                    <p className="font-semibold text-green-900 mb-3">✓ Till Operations</p>
-                    <ul className="text-sm text-green-800 space-y-1 list-disc list-inside">
-                      <li>Open Till Session</li>
-                      <li>Verify session open</li>
-                      <li>Process Sales</li>
-                      <li>Track inventory</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-purple-50 p-4 rounded">
-                    <p className="font-semibold text-purple-900 mb-3">✓ Verification</p>
-                    <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
-                      <li>Stock deductions</li>
-                      <li>Till reconciliation</li>
-                      <li>Sale history</li>
-                      <li>Close session</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documentation Links */}
-              <div className="mt-8 pt-8 border-t">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <a
-                    href="/docs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 border rounded hover:bg-gray-50"
-                  >
-                    <p className="font-semibold text-gray-900">Swagger UI</p>
-                    <p className="text-sm text-gray-600">Interactive API documentation with try-it-out</p>
-                  </a>
-
-                  <a
-                    href="/redoc"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 border rounded hover:bg-gray-50"
-                  >
-                    <p className="font-semibold text-gray-900">ReDoc</p>
-                    <p className="text-sm text-gray-600">Beautiful, easy-to-read API documentation</p>
-                  </a>
-
-                  <a
-                    href="/openapi.json"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 border rounded hover:bg-gray-50"
-                  >
-                    <p className="font-semibold text-gray-900">OpenAPI Spec</p>
-                    <p className="text-sm text-gray-600">Full OpenAPI 3.0 specification JSON</p>
-                  </a>
-                </div>
-              </div>
-
-              {/* Info Box */}
-              <div className="mt-8 pt-8 border-t bg-blue-50 p-4 rounded">
-                <p className="text-sm text-blue-900 mb-2">
-                  <strong>💡 Tip:</strong> Click on any step to expand it and see the API endpoint and example request body.
-                  Copy the example JSON and paste it into the Swagger UI to test the endpoint.
-                </p>
-                <p className="text-sm text-blue-900">
-                  <strong>Organization ID:</strong> 1 | <strong>Current User ID:</strong> {user.id}
-                </p>
-              </div>
-            </div>
-          )}
+            {loginMessage && (
+              <p role={loginError ? 'alert' : 'status'} className={`text-sm ${loginError ? 'text-red-700' : 'text-green-700'}`}>
+                {loginMessage}
+              </p>
+            )}
+          </form>
         </div>
-      </div>
+      </main>
     )
   }
 
+  const canManageEmployees = user.role === 'admin' || user.role === 'manager'
+  const navigation = [
+    ...(user.role === 'admin' ? [{ id: 'setup' as const, label: 'Setup' }] : []),
+    ...(canManageEmployees ? [{ id: 'employees' as const, label: 'Employees & tills' }] : []),
+    ...SCREENS,
+  ]
+  const currentScreen = navigation.some((item) => item.id === screen) ? screen : 'inventory'
+  const activeTill = availableTills.find((till) => till.id === selectedTill?.id) ?? null
+  const managerClosableSessions = managerOpenSessions.filter(({ till, session }) =>
+    !(session.operator_id === user.id && availableTills.some((item) => item.id === till.id)),
+  )
+  const selectedManagerCloseTillId = managerClosableSessions.some(
+    ({ till }) => till.id === managerCloseTillId,
+  )
+    ? managerCloseTillId
+    : managerClosableSessions[0]?.till.id ?? ''
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md mx-auto px-4 py-12">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Tenga Inventory POS</h1>
-          <p className="text-sm text-gray-600 mb-6">Point of Sale System for Inventory Management</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Login</h2>
-          <form onSubmit={handleLogin} className="space-y-3">
-            <input
-              type="email"
-              className="w-full border rounded px-3 py-2"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              className="w-full border rounded px-3 py-2"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <div className="flex items-center justify-between">
-              <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Login</button>
-              <a className="text-sm text-indigo-600 hover:underline" href="/docs" target="_blank" rel="noreferrer">API Docs</a>
-            </div>
-          </form>
-          {status && <p className={`mt-3 text-sm ${status.includes('successful') ? 'text-green-700' : 'text-gray-700'}`}>{status}</p>}
-        </div>
-
-        <div className="text-center mt-6 text-sm text-gray-600 space-y-2">
-          <p><strong>Demo Credentials:</strong></p>
-          <div className="bg-gray-50 p-3 rounded text-xs font-mono">
-            <p>Email: admin@teststore.com</p>
-            <p>Password: Admin123!</p>
+    <div className="min-h-screen bg-gray-50">
+      <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Tenga Inventory POS</h1>
+            <p className="text-sm text-gray-600">
+              {user.username} · {user.role} · Organization {user.organization_id}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <OfflineSyncStatus organizationId={user.organization_id} compact />
+            <nav aria-label="Main navigation" className="flex flex-wrap gap-2">
+              {navigation.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-current={currentScreen === item.id ? 'page' : undefined}
+                  onClick={() => setScreen(item.id)}
+                  className={`rounded-md px-3 py-2 text-sm font-medium ${
+                    currentScreen === item.id
+                      ? 'bg-indigo-100 text-indigo-800'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Sign out
+            </button>
           </div>
         </div>
-      </div>
+      </header>
+
+      <main>
+        {currentScreen === 'setup' && user.role === 'admin' && (
+          <SetupWizard user={user} onManageEmployeeAssignments={() => setScreen('employees')} />
+        )}
+        {currentScreen === 'employees' && canManageEmployees && <EmployeeTillAssignments user={user} />}
+        {currentScreen === 'inventory' && (
+          <InventoryOverview
+            onAddProduct={() => setScreen('product')}
+            onCountStock={() => { setOperationsView('count'); setScreen('operations') }}
+            onImportCsv={() => { setOperationsView('import'); setScreen('operations') }}
+            onOpenOperations={() => { setOperationsView('receipt'); setScreen('operations') }}
+            onManageProduct={(productId) => {
+              setOperationsProductId(productId)
+              setOperationsView('history')
+              setScreen('operations')
+            }}
+          />
+        )}
+        {currentScreen === 'operations' && (
+          <InventoryOperations initialView={operationsView} initialProductId={operationsProductId} />
+        )}
+        {currentScreen === 'product' && (
+          <AddProduct onCancel={() => setScreen('inventory')} onCreated={() => setScreen('inventory')} />
+        )}
+        {currentScreen === 'pos' && (
+          <section className="mx-auto max-w-7xl px-4 py-6">
+            <div className="mb-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold text-gray-900">
+                  {activeTill ? `Active till session · ${activeTill.name}` : 'Till session'}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Checkout requires an open session assigned to your employee account.
+                </p>
+              </div>
+              {availableTills.length > 0 && (
+                <label className="text-sm font-medium text-gray-700">
+                  Till
+                  <select
+                    value={activeTill?.id ?? ''}
+                    onChange={(event) => {
+                      const till = availableTills.find((item) => item.id === Number(event.target.value)) ?? null
+                      setSelectedTill(till)
+                    }}
+                    className="ml-2 min-w-48 rounded-md border border-gray-300 bg-white px-3 py-2"
+                  >
+                    {availableTills.map((till) => (
+                      <option key={till.id} value={till.id}>{till.name}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+            {tillsLoading && <p role="status" className="mb-4 text-sm text-gray-600">Checking till sessions…</p>}
+            {tillsError && (
+              <p role="alert" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                {tillsError}
+              </p>
+            )}
+            {tillActionMessage && (
+              <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+                {tillActionMessage}
+              </p>
+            )}
+            {tillActionError && (
+              <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+                {tillActionError}
+              </p>
+            )}
+            {!tillsLoading && !activeTill ? (
+              <div className="rounded-lg border border-gray-200 bg-white p-6">
+                {assignedTills.length === 0 ? (
+                  <div className="text-center">
+                    <h3 className="font-semibold text-gray-900">No tills assigned</h3>
+                    <p className="mt-2 text-sm text-gray-600">
+                      Ask an administrator to assign an active till to your employee account.
+                    </p>
+                  </div>
+                ) : openableTills.length > 0 ? (
+                  <>
+                    <h3 className="font-semibold text-gray-900">Open a till session</h3>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Choose one of your assigned tills and enter its opening cash balance.
+                    </p>
+                    <form onSubmit={handleOpenTill} className="mt-4 flex flex-col gap-4 sm:max-w-xl">
+                      <label className="text-sm font-medium text-gray-700">
+                        Assigned till
+                        <select
+                          required
+                          value={openTillId}
+                          onChange={(event) => setOpenTillId(Number(event.target.value))}
+                          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                        >
+                          {openableTills.map((till) => (
+                            <option key={till.id} value={till.id}>{till.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-sm font-medium text-gray-700">
+                        Opening cash balance
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          required
+                          value={openingBalance}
+                          onChange={(event) => setOpeningBalance(event.target.value)}
+                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                        />
+                      </label>
+                      <button
+                        type="submit"
+                        disabled={tillActionLoading || openTillId === ''}
+                        className="self-start rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        {tillActionLoading ? 'Opening session…' : 'Open till session'}
+                      </button>
+                    </form>
+                    {busyTills.length > 0 && (
+                      <p className="mt-4 text-sm text-amber-800">
+                        Already in use by another operator: {busyTills.map((till) => till.name).join(', ')}.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <h3 className="font-semibold text-gray-900">No till available to open</h3>
+                    <p className="mt-2 text-sm text-gray-600">
+                      {busyTills.length > 0
+                        ? `Your assigned tills are already open for another operator: ${busyTills.map((till) => till.name).join(', ')}.`
+                        : 'Till sessions could not be verified. Reload the page or contact an administrator.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : activeTill ? (
+              <>
+                <form onSubmit={handleCloseTill} className="mb-4 flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-end">
+                  <label className="text-sm font-medium text-gray-700">
+                    Closing cash counted
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required
+                      value={closingBalance}
+                      onChange={(event) => setClosingBalance(event.target.value)}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-gray-700 sm:flex-1">
+                    Closing notes (optional)
+                    <input
+                      type="text"
+                      maxLength={500}
+                      value={closingNotes}
+                      onChange={(event) => setClosingNotes(event.target.value)}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={tillActionLoading || usingCachedTillSession || !navigator.onLine}
+                    className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {tillActionLoading ? 'Closing session…' : 'Close and reconcile till'}
+                  </button>
+                </form>
+                <Checkout tillSessionId={openSessionIds[activeTill.id]} />
+              </>
+            ) : null}
+            {(user.role === 'admin' || user.role === 'manager')
+              && managerClosableSessions.length > 0 && (
+                <section className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                  <h3 className="font-semibold text-amber-950">Supervisor session closure</h3>
+                  <p className="mt-1 text-sm text-amber-900">
+                    Close and reconcile another open till session in this organization. This does not enable checkout as that operator.
+                  </p>
+                  <form
+                    onSubmit={handleManagerCloseTill}
+                    className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end"
+                  >
+                    <label className="text-sm font-medium text-gray-700">
+                      Open till session
+                      <select
+                        required
+                        value={selectedManagerCloseTillId}
+                        onChange={(event) => setManagerCloseTillId(Number(event.target.value))}
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                      >
+                        {managerClosableSessions.map(({ till, session }) => (
+                          <option key={till.id} value={till.id}>
+                            {till.name} · operator #{session.operator_id}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Closing cash counted
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        required
+                        value={managerClosingBalance}
+                        onChange={(event) => setManagerClosingBalance(event.target.value)}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                      />
+                    </label>
+                    <label className="text-sm font-medium text-gray-700 sm:flex-1">
+                      Closing notes (optional)
+                      <input
+                        type="text"
+                        maxLength={500}
+                        value={managerClosingNotes}
+                        onChange={(event) => setManagerClosingNotes(event.target.value)}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={tillActionLoading || selectedManagerCloseTillId === ''}
+                      className="rounded-md border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-950 hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {tillActionLoading ? 'Closing session…' : 'Close and reconcile'}
+                    </button>
+                  </form>
+                </section>
+              )}
+          </section>
+        )}
+      </main>
     </div>
   )
 }

@@ -11,6 +11,8 @@ if "SQLITE_PATH" not in os.environ:
 
 from src.database import SessionLocal, init_db, drop_db, get_db
 from src.models.entities import (
+    Employee,
+    EmployeeTillAssignment,
     Organization,
     User,
     Location,
@@ -21,6 +23,7 @@ from src.models.entities import (
 from src.models.subscription import SubscriptionState, SubscriptionTerm
 from src.security.password import hash_password
 from src.security.auth import create_access_token
+from src.services.till_service import TillService
 from src.main import app
 
 
@@ -106,6 +109,32 @@ def till(db: Session, org: Organization, location: Location):
 
 
 @pytest.fixture
+def open_pos_session(db: Session, org: Organization, till: Till):
+    """Create an assigned cashier and their authenticated open till session."""
+    def open_for(user: User):
+        employee = Employee(
+            organization_id=org.id,
+            user_id=user.id,
+            employee_number=f"POS-{user.id}",
+            full_name=user.full_name,
+            is_active=True,
+        )
+        db.add(employee)
+        db.flush()
+        db.add(EmployeeTillAssignment(employee_id=employee.id, till_id=till.id))
+        db.commit()
+        return TillService.open_session(
+            organization_id=org.id,
+            till_id=till.id,
+            operator_id=user.id,
+            opening_balance="0.00",
+            db=db,
+            enforce_assignment=True,
+        )
+    return open_for
+
+
+@pytest.fixture
 def subscription_active(db: Session, org: Organization):
     """Create an active subscription."""
     tomorrow = datetime.utcnow() + timedelta(days=30)
@@ -148,8 +177,8 @@ def client(db: Session, user: User):
 
 
 @pytest.fixture
-def authenticated_client(db: Session, user: User):
-    """Create an authenticated test client."""
+def authenticated_client(db: Session, admin_user: User):
+    """Create an authenticated test client with catalog-management permissions."""
     def override_get_db():
         yield db
     
@@ -159,7 +188,7 @@ def authenticated_client(db: Session, user: User):
     # Login to get token
     response = test_client.post(
         "/api/v1/auth/login",
-        json={"email": "cashier@test.com", "password": "cashier_password"}
+        json={"email": "admin@test.com", "password": "admin_password"}
     )
     if response.status_code == 200:
         token = response.json()["access_token"]

@@ -5,6 +5,8 @@ from alembic import context
 
 # Import our database configuration and models
 from src.database.config import Base, DB_URL
+import src.models
+import src.models.sync
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -76,4 +78,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-

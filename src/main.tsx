@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import App from './App'
 import './index.css'
+import { registerServiceWorker } from './pwa/registerServiceWorker'
+
+void registerServiceWorker()
 
 const queryClient = new QueryClient({
   defaultOptions: {

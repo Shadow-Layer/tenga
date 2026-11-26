@@ -10,18 +10,18 @@ These tests verify:
 """
 
 import pytest
-import threading
-import time
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.models.entities import (
     Organization, User, Location, Product, Stock, InventoryMovement
 )
+from src.database.config import Base
 from src.services.inventory_service import InventoryService
-from src.database import SessionLocal
 
 
 class TestAdjustmentMechanismVerification:
@@ -245,77 +245,84 @@ class TestStockHistoryPersistence:
 class TestConcurrentAdjustmentSafety:
     """Test that concurrent changes don't overwrite one another."""
     
-    def test_concurrent_adjustments_both_persist(self, db: Session, org: Organization,
-                                                 location: Location, product: Product, user: User):
+    def test_concurrent_adjustments_both_persist(self):
         """Scenario C1: Two concurrent adjustments both persist (no overwrites)."""
-        # Arrange: Initial stock = 100
-        stock = Stock(
-            organization_id=org.id,
-            location_id=location.id,
-            product_id=product.id,
-            quantity=100,
-        )
-        db.add(stock)
-        db.commit()
-        
-        # Use a local session for thread 1
-        def adjust_thread_1():
-            session1 = SessionLocal()
-            InventoryService.record_movement(
-                organization_id=org.id,
-                product_id=product.id,
-                location_id=location.id,
-                quantity=-20,
-                reason="DAMAGE",
-                recorded_by_id=user.id,
-                reference_type="ADJUSTMENT",
-                reference_id=None,
-                db=session1,
-            )
-            session1.close()
-        
-        # Use a local session for thread 2
-        def adjust_thread_2():
-            session2 = SessionLocal()
-            InventoryService.record_movement(
-                organization_id=org.id,
-                product_id=product.id,
-                location_id=location.id,
-                quantity=-15,
-                reason="ADJUSTMENT",
-                recorded_by_id=user.id,
-                reference_type="ADJUSTMENT",
-                reference_id=None,
-                db=session2,
-            )
-            session2.close()
-        
-        # Act: Execute adjustments concurrently
-        t1 = threading.Thread(target=adjust_thread_1)
-        t2 = threading.Thread(target=adjust_thread_2)
-        
-        t1.start()
-        t2.start()
-        
-        t1.join()
-        t2.join()
-        
-        # Assert: Both movements created
-        movements = db.query(InventoryMovement).filter(
-            InventoryMovement.product_id == product.id,
-            InventoryMovement.location_id == location.id,
-        ).all()
-        
-        assert len(movements) == 2
-        
-        # Assert: Final stock = 100 - 20 - 15 = 65
-        computed_stock = InventoryService.compute_stock_at_location(
-            organization_id=org.id,
-            product_id=product.id,
-            location_id=location.id,
-            db=db,
-        )
-        assert computed_stock == 65
+        with tempfile.TemporaryDirectory(prefix="tenga-concurrency-") as directory:
+            engine = create_engine(f"sqlite:///{directory}/inventory.db")
+            Base.metadata.create_all(bind=engine)
+            sessions = sessionmaker(bind=engine)
+            try:
+                with sessions() as setup:
+                    org = Organization(name="Concurrent Org", code="CONCURRENT")
+                    setup.add(org)
+                    setup.flush()
+                    location = Location(
+                        organization_id=org.id, code="LOC", name="Main"
+                    )
+                    product = Product(
+                        organization_id=org.id,
+                        sku="SKU",
+                        name="Product",
+                        price=1,
+                    )
+                    user = User(
+                        organization_id=org.id,
+                        email="operator@example.test",
+                        username="operator",
+                        password_hash="test-hash",
+                        role="admin",
+                    )
+                    setup.add_all([location, product, user])
+                    setup.commit()
+                    organization_id, location_id, product_id, user_id = (
+                        org.id, location.id, product.id, user.id
+                    )
+
+                with sessions() as setup:
+                    InventoryService.record_movement(
+                        organization_id=organization_id,
+                        product_id=product_id,
+                        location_id=location_id,
+                        quantity=100,
+                        reason="PURCHASE",
+                        recorded_by_id=user_id,
+                        reference_type="ADJUSTMENT",
+                        db=setup,
+                    )
+
+                def record_adjustment(quantity: int, reason: str) -> None:
+                    with sessions() as session:
+                        InventoryService.record_movement(
+                            organization_id=organization_id,
+                            product_id=product_id,
+                            location_id=location_id,
+                            quantity=quantity,
+                            reason=reason,
+                            recorded_by_id=user_id,
+                            reference_type="ADJUSTMENT",
+                            db=session,
+                        )
+
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    first = executor.submit(record_adjustment, -20, "DAMAGE")
+                    second = executor.submit(record_adjustment, -15, "ADJUSTMENT")
+                    first.result()
+                    second.result()
+
+                with sessions() as verify:
+                    movements = verify.query(InventoryMovement).filter(
+                        InventoryMovement.product_id == product_id,
+                        InventoryMovement.location_id == location_id,
+                    ).all()
+                    assert len(movements) == 3
+                    assert InventoryService.compute_stock_at_location(
+                        organization_id=organization_id,
+                        product_id=product_id,
+                        location_id=location_id,
+                        db=verify,
+                    ) == 65
+            finally:
+                engine.dispose()
 
 
 class TestFailedOperationsSafety:

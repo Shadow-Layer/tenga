@@ -66,17 +66,6 @@ def get_swagger_ui_with_guide(app) -> HTMLResponse:
             margin-bottom: 12px;
         }
         
-        .creds {
-            background: #f0f4f8;
-            border-left: 4px solid #0066cc;
-            padding: 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-family: monospace;
-            color: #333;
-            margin-top: 12px;
-        }
-        
         .steps-container {
             padding: 20px;
         }
@@ -246,11 +235,7 @@ def get_swagger_ui_with_guide(app) -> HTMLResponse:
         <!-- Introduction -->
         <div class="intro">
             <h2>Getting Started</h2>
-            <p>Follow these 8 simple steps to test the complete POS workflow. Each step includes an API endpoint and example request.</p>
-            <div class="creds">
-Email: admin@teststore.com<br>
-Password: Admin123!
-            </div>
+            <p>Follow these steps to explore the API. Authenticate with an account created for your organization; never use shared demo credentials.</p>
         </div>
         
         <!-- Steps -->
@@ -441,14 +426,14 @@ Password: Admin123!
                 </div>
                 <div class="step-content">
                     <div class="step-body">
-                        <p>Finalize the till session with closing cash amount.</p>
+                        <p>Finalize the reviewed open till session with its session ID and closing cash amount.</p>
                         <div class="endpoint">POST /api/v1/tills/{till_id}/close</div>
                         <div class="json-box">{
-  "user_id": 2,
-  "closing_amount_cents": 51250,
+  "session_id": 10,
+  "closing_balance": 512.50,
   "notes": "End of shift"
 }</div>
-                        <div class="tip"><strong>Tip:</strong> Closing amount should be opening ($500) + sales ($9) = $509. Replace {till_id} with your ID.</div>
+                        <div class="tip"><strong>Tip:</strong> The submitted session ID must match the open session being closed. Replace {till_id} and session_id with current values.</div>
                     </div>
                 </div>
             </div>

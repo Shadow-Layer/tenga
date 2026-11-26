@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 from src.database import SessionLocal, init_db, drop_db
 from src.models.entities import (
-    Organization, User, Location, Product, Till,
+    Employee, EmployeeTillAssignment, Organization, User, Location, Product, Till,
     Subscription, TillSession, Sale, SaleItem, 
     InventoryMovement, Stock
 )
@@ -27,6 +27,28 @@ from src.services.inventory_service import InventoryService
 from src.services.sale_service import SaleService
 from src.services.till_service import TillService
 from src.services.sync_service import SyncService
+
+
+def open_assigned_session(db, org, till, user, opening_balance="0.00"):
+    employee = Employee(
+        organization_id=org.id,
+        user_id=user.id,
+        employee_number=f"E2E-{user.id}",
+        full_name=user.full_name,
+        is_active=True,
+    )
+    db.add(employee)
+    db.flush()
+    db.add(EmployeeTillAssignment(employee_id=employee.id, till_id=till.id))
+    db.commit()
+    return TillService.open_session(
+        organization_id=org.id,
+        till_id=till.id,
+        operator_id=user.id,
+        opening_balance=opening_balance,
+        db=db,
+        enforce_assignment=True,
+    )
 
 
 @pytest.fixture(scope="function")
@@ -58,6 +80,8 @@ class TestBasicPOSFlow:
             organization_id=org.id,
             plan="PRO",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=datetime.utcnow() + timedelta(days=30),
         )
         db.add(sub)
@@ -104,18 +128,13 @@ class TestBasicPOSFlow:
             username="cashier",
             full_name="Alice Barista",
             password_hash="hash",
+            role="operator",
         )
         db.add(cashier)
         db.commit()
         
         # 6. Open till session
-        session = TillService.open_session(
-            organization_id=org.id,
-            till_id=till.id,
-            operator_id=cashier.id,
-            opening_balance=100.00,
-            db=db,
-        )
+        session = open_assigned_session(db, org, till, cashier, "100.00")
         assert session.status == "OPEN"
         
         # 7. Record sales
@@ -124,6 +143,9 @@ class TestBasicPOSFlow:
             till_id=till.id,
             cashier_id=cashier.id,
             payment_method="CASH",
+            amount_tendered="9.50",
+            till_session_id=session.id,
+            idempotency_key="e2e-basic-sale-0001",
             items=[
                 {"product_id": product_coffee.id, "quantity": 2, "unit_price": 3.50},
                 {"product_id": product_tea.id, "quantity": 1, "unit_price": 2.50},
@@ -165,6 +187,8 @@ class TestMultiTillScenario:
             organization_id=org.id,
             plan="BASIC",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=datetime.utcnow() + timedelta(days=30),
         )
         db.add(sub)
@@ -206,6 +230,7 @@ class TestMultiTillScenario:
             username="cashier_a",
             full_name="Alice",
             password_hash="hash",
+            role="operator",
         )
         cashier_b = User(
             organization_id=org.id,
@@ -213,27 +238,30 @@ class TestMultiTillScenario:
             username="cashier_b",
             full_name="Bob",
             password_hash="hash",
+            role="operator",
         )
         db.add_all([cashier_a, cashier_b])
         db.commit()
         
         # Open sessions on both tills
-        session_a = TillService.open_session(
-            org.id, till_a.id, cashier_a.id, db=db
-        )
-        session_b = TillService.open_session(
-            org.id, till_b.id, cashier_b.id, db=db
-        )
+        session_a = open_assigned_session(db, org, till_a, cashier_a)
+        session_b = open_assigned_session(db, org, till_b, cashier_b)
         
         # Both create sales
         sale_a = SaleService.create_sale(
             org.id, till_a.id, cashier_a.id, "CASH",
             [{"product_id": product.id, "quantity": 3, "unit_price": 5.00}],
+            amount_tendered="15.00",
+            till_session_id=session_a.id,
+            idempotency_key="e2e-till-a-sale-01",
             db=db,
         )
         sale_b = SaleService.create_sale(
-            org.id, till_b.id, cashier_b.id, "CARD",
+            org.id, till_b.id, cashier_b.id, "CASH",
             [{"product_id": product.id, "quantity": 2, "unit_price": 5.00}],
+            amount_tendered="10.00",
+            till_session_id=session_b.id,
+            idempotency_key="e2e-till-b-sale-01",
             db=db,
         )
         
@@ -266,6 +294,8 @@ class TestOfflineSingleTill:
             organization_id=org.id,
             plan="PRO",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=datetime.utcnow() + timedelta(days=30),
         )
         db.add(sub)
@@ -299,9 +329,11 @@ class TestOfflineSingleTill:
             username="cashier",
             full_name="Cashier",
             password_hash="hash",
+            role="operator",
         )
         db.add(cashier)
         db.commit()
+        session = open_assigned_session(db, org, till, cashier)
         
         device_id = "DEVICE_123"
         
@@ -309,12 +341,16 @@ class TestOfflineSingleTill:
         offline_sale1 = SaleService.create_sale(
             org.id, till.id, cashier.id, "CASH",
             [{"product_id": product.id, "quantity": 5, "unit_price": 10.00}],
+            amount_tendered="50.00",
+            till_session_id=session.id,
             offline_device_id=device_id,
             db=db,
         )
         offline_sale2 = SaleService.create_sale(
             org.id, till.id, cashier.id, "CASH",
             [{"product_id": product.id, "quantity": 3, "unit_price": 10.00}],
+            amount_tendered="30.00",
+            till_session_id=session.id,
             offline_device_id=device_id,
             db=db,
         )
@@ -359,6 +395,8 @@ class TestMultiTillOfflineConflict:
             organization_id=org.id,
             plan="PRO",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=datetime.utcnow() + timedelta(days=30),
         )
         db.add(sub)
@@ -384,6 +422,7 @@ class TestMultiTillOfflineConflict:
             username="admin",
             full_name="Admin",
             password_hash="hash",
+            role="operator",
         )
         db.add(admin)
         db.commit()
@@ -415,6 +454,7 @@ class TestMultiTillOfflineConflict:
             username="cashier_a",
             full_name="Cashier A",
             password_hash="hash",
+            role="operator",
         )
         cashier_b = User(
             organization_id=org.id,
@@ -422,9 +462,12 @@ class TestMultiTillOfflineConflict:
             username="cashier_b",
             full_name="Cashier B",
             password_hash="hash",
+            role="operator",
         )
         db.add_all([cashier_a, cashier_b])
         db.commit()
+        session_a = open_assigned_session(db, org, till_a, cashier_a)
+        session_b = open_assigned_session(db, org, till_b, cashier_b)
         
         # Both tills go offline and record sales
         device_a = "DEVICE_A"
@@ -433,6 +476,8 @@ class TestMultiTillOfflineConflict:
         sale_a = SaleService.create_sale(
             org.id, till_a.id, cashier_a.id, "CASH",
             [{"product_id": product.id, "quantity": 5, "unit_price": 10.00}],
+            amount_tendered="50.00",
+            till_session_id=session_a.id,
             offline_device_id=device_a,
             db=db,
         )
@@ -440,6 +485,8 @@ class TestMultiTillOfflineConflict:
         sale_b = SaleService.create_sale(
             org.id, till_b.id, cashier_b.id, "CASH",
             [{"product_id": product.id, "quantity": 5, "unit_price": 10.00}],
+            amount_tendered="50.00",
+            till_session_id=session_b.id,
             offline_device_id=device_b,
             db=db,
         )
@@ -500,6 +547,7 @@ class TestInventoryAdjustment:
             username="admin",
             full_name="Admin",
             password_hash="hash",
+            role="operator",
         )
         db.add(admin)
         db.commit()
@@ -560,6 +608,8 @@ class TestSubscriptionGracePeriod:
             organization_id=org.id,
             plan="PRO",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=expiry_date,
             grace_end_date=grace_end,
         )
@@ -590,6 +640,7 @@ class TestSubscriptionGracePeriod:
             username="user",
             full_name="User",
             password_hash="hash",
+            role="operator",
         )
         db.add(user)
         db.commit()
@@ -635,6 +686,8 @@ class TestOfflineSubscriptionExpiry:
             organization_id=org.id,
             plan="PRO",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=datetime.utcnow() + timedelta(days=30),
         )
         db.add(sub)
@@ -659,6 +712,7 @@ class TestOfflineSubscriptionExpiry:
             username="user",
             full_name="User",
             password_hash="hash",
+            role="operator",
         )
         db.add(user)
         db.commit()
@@ -721,6 +775,8 @@ class TestIdempotencyOnSync:
             organization_id=org.id,
             plan="BASIC",
             term=SubscriptionTerm.MONTHLY.value,
+            state=SubscriptionState.ACTIVE.value,
+            start_date=datetime.utcnow(),
             expiry_date=datetime.utcnow() + timedelta(days=30),
         )
         db.add(sub)
@@ -754,9 +810,11 @@ class TestIdempotencyOnSync:
             username="cashier",
             full_name="Cashier",
             password_hash="hash",
+            role="operator",
         )
         db.add(cashier)
         db.commit()
+        session = open_assigned_session(db, org, till, cashier)
         
         device_id = "DEVICE_SYNC"
         
@@ -764,6 +822,8 @@ class TestIdempotencyOnSync:
         offline_sale = SaleService.create_sale(
             org.id, till.id, cashier.id, "CASH",
             [{"product_id": product.id, "quantity": 5, "unit_price": 10.00}],
+            amount_tendered="50.00",
+            till_session_id=session.id,
             offline_device_id=device_id,
             db=db,
         )

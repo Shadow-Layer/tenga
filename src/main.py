@@ -2,17 +2,19 @@
 from datetime import datetime, timezone
 import logging
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
 
-from src.config import API_TITLE, API_DESCRIPTION, API_VERSION, CORS_ORIGINS, CORS_ALLOW_CREDENTIALS, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS, DEBUG
+from src.config import API_TITLE, API_DESCRIPTION, API_VERSION, CORS_ORIGINS, CORS_ALLOW_CREDENTIALS, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS, DEBUG, ENVIRONMENT, Environment
 from src.database.config import get_db, init_db
 # Import models to register them with Base
 from src.models import entities  # noqa: F401
-from src.routers import products, locations, organizations, users, sales, tills, inventory, sync, subscriptions, auth
+from src.routers import products, locations, organizations, users, sales, tills, inventory, sync, subscriptions, auth, tax_rules, setup, employees
 from src.swagger_ui_custom import get_swagger_ui_with_guide
 
 # Configure logging
@@ -26,8 +28,11 @@ async def lifespan(app: FastAPI):
     """Manage app startup and shutdown."""
     # Startup
     logger.info(f"Starting {API_TITLE} (v{API_VERSION})")
-    init_db()
-    logger.info("Database initialized")
+    if ENVIRONMENT != Environment.PROD:
+        init_db()
+        logger.info("Development database schema initialized")
+    else:
+        logger.info("Production schema initialization is managed by Alembic")
     yield
     # Shutdown
     logger.info(f"Shutting down {API_TITLE}")
@@ -51,6 +56,7 @@ app.add_middleware(
     allow_credentials=CORS_ALLOW_CREDENTIALS,
     allow_methods=CORS_ALLOW_METHODS,
     allow_headers=CORS_ALLOW_HEADERS,
+    expose_headers=["X-Sale-Outcome"],
 )
 
 
@@ -102,12 +108,21 @@ async def http_exception_handler(request, exc):
     """Standardized HTTP exception handler."""
     return JSONResponse(
         status_code=exc.status_code,
+        headers=exc.headers,
         content={
             "detail": exc.detail,
             "status_code": exc.status_code,
             "type": "http_error",
         },
     )
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_handler(request, exc):
+    response = await request_validation_exception_handler(request, exc)
+    if request.method == "POST" and request.url.path == "/api/v1/sales":
+        response.headers["X-Sale-Outcome"] = "NOT_CREATED"
+    return response
 
 
 @app.exception_handler(Exception)
@@ -130,11 +145,14 @@ app.include_router(products.router, prefix="/api/v1", tags=["Products"])
 app.include_router(locations.router, prefix="/api/v1", tags=["Locations"])
 app.include_router(inventory.router, prefix="/api/v1/stock", tags=["Inventory"])
 app.include_router(organizations.router, prefix="/api/v1/organizations", tags=["Organizations"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(employees.router, prefix="/api/v1/organizations", tags=["Employees"])
+app.include_router(users.router, prefix="/api/v1/organizations", tags=["Users"])
 app.include_router(sales.router, prefix="/api/v1", tags=["Sales"])
 app.include_router(tills.router, prefix="/api/v1/tills", tags=["Tills"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
-app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
+app.include_router(sync.router, prefix="/api/v1", tags=["Sync"])
+app.include_router(tax_rules.router, prefix="/api/v1/tax-rules", tags=["Tax Rules"])
+app.include_router(setup.router, prefix="/api/v1/setup", tags=["Setup"])
 
 
 # Custom Swagger UI with integrated quick start guide

@@ -66,6 +66,11 @@ def create_user(
             status_code=403,
             detail="Only admin or manager can create users"
         )
+    if user_data.role == "admin" and current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Only an admin can create another admin",
+        )
     
     # Check if organization exists
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -193,4 +198,3 @@ def get_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     return user
-
